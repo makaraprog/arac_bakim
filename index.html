@@ -2,7 +2,8 @@
 <html lang="tr">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <meta name="mobile-web-app-capable" content="yes" />
   <meta name="theme-color" content="#0f172a" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
@@ -11,221 +12,278 @@
   <link rel="manifest" href="manifest.json" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
-  <!-- jsPDF for PDF generation -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-
   <style>
     :root {
-      --bg: #0a0f1e;
-      --surface: #111827;
-      --surface2: #1a2235;
-      --border: #1e2d45;
-      --accent: #f97316;
-      --accent2: #fb923c;
-      --blue: #3b82f6;
-      --green: #22c55e;
-      --red: #ef4444;
-      --yellow: #eab308;
-      --text: #f1f5f9;
-      --text2: #94a3b8;
-      --text3: #475569;
-      --radius: 14px;
-      --radius-sm: 8px;
-      --shadow: 0 4px 24px rgba(0,0,0,0.4);
-      --nav-h: 64px;
+      --bg:#0a0f1e; --surface:#111827; --surface2:#1a2235; --border:#1e2d45;
+      --accent:#f97316; --accent2:#fb923c; --blue:#3b82f6; --green:#22c55e;
+      --red:#ef4444; --text:#f1f5f9; --text2:#94a3b8; --text3:#475569;
+      --radius:14px; --radius-sm:8px; --shadow:0 4px 24px rgba(0,0,0,.4);
+      --nav-h:64px;
+      --safe-top: env(safe-area-inset-top, 0px);
+      --safe-bottom: env(safe-area-inset-bottom, 0px);
     }
-    * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
-    html,body { height:100%; background:var(--bg); color:var(--text); font-family:'DM Sans',sans-serif; overflow:hidden; }
-    #app { display:flex; flex-direction:column; height:100vh; }
+    *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 
-    /* TOP BAR */
-    .topbar { display:flex; align-items:center; justify-content:space-between; padding:12px 18px; background:var(--surface); border-bottom:1px solid var(--border); flex-shrink:0; }
-    .topbar-logo { font-family:'Syne',sans-serif; font-weight:800; font-size:18px; color:var(--accent); letter-spacing:-0.5px; }
-    .topbar-logo span { color:var(--text2); font-weight:400; }
-    .topbar-actions { display:flex; gap:8px; }
-    .icon-btn { width:38px; height:38px; border-radius:var(--radius-sm); border:1px solid var(--border); background:var(--surface2); color:var(--text2); display:grid; place-items:center; cursor:pointer; transition:all .2s; font-size:18px; }
-    .icon-btn:hover { color:var(--accent); border-color:var(--accent); }
+    /* iOS Safari 100vh fix */
+    html{height:-webkit-fill-available}
+    body{
+      height:100%;
+      min-height:-webkit-fill-available;
+      background:var(--bg);color:var(--text);
+      font-family:'DM Sans',sans-serif;overflow:hidden;
+    }
 
-    /* CONTENT & NAV */
-    .content { flex:1; overflow-y:auto; overflow-x:hidden; padding-bottom:calc(var(--nav-h) + 8px); }
-    .content::-webkit-scrollbar { width:0; }
-    .bottom-nav { height:var(--nav-h); background:var(--surface); border-top:1px solid var(--border); display:flex; align-items:stretch; flex-shrink:0; }
-    .nav-item { flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:4px; cursor:pointer; transition:all .2s; color:var(--text3); font-size:10px; font-weight:500; letter-spacing:.5px; text-transform:uppercase; position:relative; }
-    .nav-item.active { color:var(--accent); }
-    .nav-item.active::before { content:''; position:absolute; top:0; left:50%; transform:translateX(-50%); width:32px; height:3px; background:var(--accent); border-radius:0 0 4px 4px; }
-    .nav-icon { font-size:22px; }
+    /* Ana container - iOS'ta dvh kullan, fallback 100vh */
+    #app{
+      display:flex;flex-direction:column;
+      height:100vh;
+      height:100dvh; /* Dynamic viewport height - iOS 15.4+ */
+    }
 
-    /* PAGES */
-    .page { display:none; }
-    .page.active { display:block; }
+    /* TOPBAR - iOS status bar boşluğu */
+    .topbar{
+      display:flex;align-items:center;justify-content:space-between;
+      padding:12px 18px;
+      padding-top:calc(12px + var(--safe-top));
+      background:var(--surface);border-bottom:1px solid var(--border);flex-shrink:0;
+    }
+    .topbar-logo{font-family:'Syne',sans-serif;font-weight:800;font-size:18px;color:var(--accent);letter-spacing:-.5px}
+    .topbar-logo span{color:var(--text2);font-weight:400}
+    .topbar-actions{display:flex;gap:8px}
+    .icon-btn{
+      width:44px;height:44px; /* iOS minimum touch target */
+      border-radius:var(--radius-sm);border:1px solid var(--border);
+      background:var(--surface2);color:var(--text2);
+      display:grid;place-items:center;
+      cursor:pointer;-webkit-appearance:none;
+      transition:all .2s;font-size:18px;
+      /* iOS touch fix */
+      -webkit-user-select:none;user-select:none;
+      touch-action:manipulation;
+    }
 
-    /* SECTION HEADER */
-    .section-header { padding:20px 18px 12px; display:flex; align-items:center; justify-content:space-between; }
-    .section-title { font-family:'Syne',sans-serif; font-size:22px; font-weight:800; }
-    .section-sub { font-size:13px; color:var(--text2); margin-top:2px; }
+    /* CONTENT - nav height + safe area */
+    .content{
+      flex:1;overflow-y:auto;overflow-x:hidden;
+      -webkit-overflow-scrolling:touch;
+      padding-bottom:calc(var(--nav-h) + var(--safe-bottom) + 16px);
+      position:relative; /* page position:absolute için şart */
+    }
+    .content::-webkit-scrollbar{width:0}
 
-    /* BUTTONS */
-    .btn { display:inline-flex; align-items:center; gap:6px; padding:9px 16px; border-radius:var(--radius-sm); border:none; cursor:pointer; font-family:'DM Sans',sans-serif; font-size:13px; font-weight:500; transition:all .2s; }
-    .btn-primary { background:var(--accent); color:#fff; }
-    .btn-primary:hover { background:var(--accent2); }
-    .btn-secondary { background:var(--surface2); color:var(--text2); border:1px solid var(--border); }
-    .btn-secondary:hover { color:var(--text); border-color:var(--text3); }
-    .btn-danger { background:rgba(239,68,68,.15); color:var(--red); border:1px solid rgba(239,68,68,.3); }
-    .btn-green { background:rgba(34,197,94,.15); color:var(--green); border:1px solid rgba(34,197,94,.3); }
-    .btn-sm { padding:6px 12px; font-size:12px; }
+    /* BOTTOM NAV - en kritik fix */
+    .bottom-nav{
+      background:var(--surface);
+      border-top:1px solid var(--border);
+      display:flex;
+      flex-shrink:0;
+      padding-bottom:var(--safe-bottom);
+      min-height:calc(var(--nav-h) + var(--safe-bottom));
+    }
+    /* button olarak kullanıldığı için varsayılanları sıfırla */
+    .nav-item{
+      /* button reset */
+      -webkit-appearance:none;
+      appearance:none;
+      background:none;
+      border:none;
+      outline:none;
+      /* layout */
+      flex:1;
+      display:flex;flex-direction:column;
+      align-items:center;justify-content:center;
+      gap:4px;
+      min-height:var(--nav-h);
+      padding:8px 4px;
+      /* touch */
+      cursor:pointer;
+      touch-action:manipulation;
+      -webkit-tap-highlight-color:rgba(249,115,22,0.15);
+      /* metin */
+      color:var(--text3);
+      font-family:'DM Sans',sans-serif;
+      font-size:10px;font-weight:500;
+      letter-spacing:.5px;text-transform:uppercase;
+      position:relative;
+    }
+    .nav-item.active{color:var(--accent)}
+    .nav-item.active::before{
+      content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);
+      width:32px;height:3px;background:var(--accent);border-radius:0 0 4px 4px;
+    }
+    .nav-icon{font-size:24px;line-height:1;display:block}
+    /* iOS Safari display:none bazen render etmiyor - visibility ile çöz */
+    .page{
+      position:absolute;top:0;left:0;right:0;
+      visibility:hidden;opacity:0;pointer-events:none;
+    }
+    .page.active{
+      position:relative;visibility:visible;opacity:1;pointer-events:auto;
+    }
+    .section-header{padding:20px 18px 12px;display:flex;align-items:center;justify-content:space-between}
+    .section-title{font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:var(--text)}
+    .section-sub{font-size:13px;color:var(--text2);margin-top:2px}
+    .btn{display:inline-flex;align-items:center;gap:6px;padding:9px 16px;border-radius:var(--radius-sm);border:none;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;transition:all .2s}
+    .btn-primary{background:var(--accent);color:#fff}.btn-primary:hover{background:var(--accent2)}
+    .btn-secondary{background:var(--surface2);color:var(--text2);border:1px solid var(--border)}.btn-secondary:hover{color:var(--text)}
+    .btn-danger{background:rgba(239,68,68,.15);color:var(--red);border:1px solid rgba(239,68,68,.3)}
+    .btn-green{background:rgba(34,197,94,.15);color:var(--green);border:1px solid rgba(34,197,94,.3)}
+    .btn-sm{padding:6px 12px;font-size:12px}
+    .search-wrap{position:relative;padding:0 18px 14px}
+    .search-wrap::before{content:'🔍';position:absolute;left:30px;top:50%;transform:translateY(-50%);font-size:14px;pointer-events:none}
+    .search-input{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:11px 14px 11px 40px;color:var(--text);font-size:14px;font-family:'DM Sans',sans-serif;outline:none;transition:border .2s}
+    .search-input:focus{border-color:var(--accent)}
+    .card-list{padding:0 18px;display:flex;flex-direction:column;gap:12px}
+    .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px;transition:all .2s;cursor:pointer}
+    .card:hover{border-color:var(--accent);transform:translateY(-1px);box-shadow:var(--shadow)}
+    .card-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px}
+    .card-title{font-family:'Syne',sans-serif;font-weight:700;font-size:16px}
+    .card-sub{font-size:12px;color:var(--text2);margin-top:2px}
+    .badge{display:inline-flex;align-items:center;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600}
+    .badge-orange{background:rgba(249,115,22,.15);color:var(--accent)}
+    .badge-green{background:rgba(34,197,94,.15);color:var(--green)}
+    .card-actions{display:flex;gap:8px;margin-top:12px;border-top:1px solid var(--border);padding-top:12px;flex-wrap:wrap}
+    .arac-chip{display:inline-flex;align-items:center;gap:5px;background:var(--surface2);border:1px solid var(--border);border-radius:20px;padding:4px 10px;font-size:12px;color:var(--text2);margin:2px}
+    .arac-chips{margin-top:8px}
+    .empty-state{text-align:center;padding:60px 20px;color:var(--text3)}
+    .empty-state .emoji{font-size:48px;margin-bottom:16px}
+    .empty-state h3{font-family:'Syne',sans-serif;color:var(--text2);margin-bottom:8px}
+    .stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:0 18px 18px}
+    .stat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px}
+    .stat-value{font-family:'Syne',sans-serif;font-size:28px;font-weight:800;color:var(--text);line-height:1;margin-bottom:4px}
+    .stat-label{font-size:11px;color:var(--text2);text-transform:uppercase;letter-spacing:.5px}
+    .stat-icon{font-size:24px;margin-bottom:8px}
+    .chart-area{margin:0 18px 18px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px}
+    .chart-title{font-family:'Syne',sans-serif;font-size:14px;font-weight:700;margin-bottom:14px;color:var(--text2)}
+    .bar-chart{display:flex;align-items:flex-end;gap:8px;height:100px}
+    .bar-wrap{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px}
+    .bar{width:100%;border-radius:4px 4px 0 0;background:var(--accent);opacity:.7;transition:opacity .2s;min-height:4px}
+    .bar:hover{opacity:1}
+    .bar-label{font-size:9px;color:var(--text3)}
+    .recent-header{font-family:'Syne',sans-serif;font-size:14px;font-weight:700;color:var(--text2);padding:0 18px 12px}
+    .overlay{
+      position:fixed;inset:0;
+      background:rgba(0,0,0,.7);z-index:100;
+      display:none;align-items:flex-end;
+      -webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px);
+      /* iOS touch fix */
+      touch-action:manipulation;
+    }
+    .overlay.open{display:flex}
+    .modal{
+      background:var(--surface);
+      border-radius:var(--radius) var(--radius) 0 0;
+      width:100%;
+      max-height:88vh;
+      max-height:88dvh;
+      overflow-y:auto;
+      -webkit-overflow-scrolling:touch;
+      padding:0 0 calc(24px + var(--safe-bottom));
+      animation:slideUp .3s ease;
+    }
+    .modal::-webkit-scrollbar{width:0}
+    @keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+    .modal-handle{text-align:center;padding:14px}
+    .modal-handle::before{content:'';display:inline-block;width:36px;height:4px;background:var(--border);border-radius:2px}
+    .modal-title{font-family:'Syne',sans-serif;font-size:18px;font-weight:800;padding:0 18px 16px;border-bottom:1px solid var(--border)}
+    .modal-body{padding:20px 18px 0}
+    .modal-footer{padding:16px 18px 0;display:flex;gap:10px}
+    .form-group{margin-bottom:16px}
+    .form-label{display:block;font-size:12px;color:var(--text2);margin-bottom:6px;font-weight:500;text-transform:uppercase;letter-spacing:.5px}
+    .form-input,.form-select,.form-textarea{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:11px 14px;color:var(--text);font-size:14px;font-family:'DM Sans',sans-serif;outline:none;transition:border .2s}
+    .form-input:focus,.form-select:focus,.form-textarea:focus{border-color:var(--accent)}
+    .form-textarea{resize:vertical;min-height:80px}
+    .form-select option{background:var(--surface2)}
+    .form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    .form-section{font-family:'Syne',sans-serif;font-size:13px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:1px;margin:20px 0 12px;padding-bottom:6px;border-bottom:1px solid var(--border)}
 
-    /* SEARCH */
-    .search-wrap { position:relative; padding:0 18px 14px; }
-    .search-wrap::before { content:'🔍'; position:absolute; left:30px; top:50%; transform:translateY(-50%); font-size:14px; pointer-events:none; }
-    .search-input { width:100%; background:var(--surface2); border:1px solid var(--border); border-radius:var(--radius-sm); padding:11px 14px 11px 40px; color:var(--text); font-size:14px; font-family:'DM Sans',sans-serif; outline:none; transition:border .2s; }
-    .search-input:focus { border-color:var(--accent); }
+    /* KALEM GRID */
+    .kalem-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
+    .kalem-item{background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 12px;cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:8px}
+    .kalem-item.selected{border-color:var(--accent);background:rgba(249,115,22,.12)}
+    .kalem-icon{font-size:18px;flex-shrink:0}
+    .kalem-name{font-size:11px;font-weight:500;flex:1;line-height:1.3}
+    .kalem-check{width:16px;height:16px;border-radius:50%;border:2px solid var(--border);flex-shrink:0;transition:all .2s}
+    .kalem-item.selected .kalem-check{background:var(--accent);border-color:var(--accent)}
 
-    /* CARDS */
-    .card-list { padding:0 18px; display:flex; flex-direction:column; gap:12px; }
-    .card { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:16px; transition:all .2s; cursor:pointer; }
-    .card:hover { border-color:var(--accent); transform:translateY(-1px); box-shadow:var(--shadow); }
-    .card-header { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:10px; }
-    .card-title { font-family:'Syne',sans-serif; font-weight:700; font-size:16px; }
-    .card-sub { font-size:12px; color:var(--text2); margin-top:2px; }
-    .badge { display:inline-flex; align-items:center; padding:3px 10px; border-radius:20px; font-size:11px; font-weight:600; }
-    .badge-orange { background:rgba(249,115,22,.15); color:var(--accent); }
-    .badge-blue { background:rgba(59,130,246,.15); color:var(--blue); }
-    .badge-green { background:rgba(34,197,94,.15); color:var(--green); }
-    .card-actions { display:flex; gap:8px; margin-top:12px; border-top:1px solid var(--border); padding-top:12px; }
-    .arac-chip { display:inline-flex; align-items:center; gap:5px; background:var(--surface2); border:1px solid var(--border); border-radius:20px; padding:4px 10px; font-size:12px; color:var(--text2); margin:2px; }
-
-    /* EMPTY */
-    .empty-state { text-align:center; padding:60px 20px; color:var(--text3); }
-    .empty-state .emoji { font-size:48px; margin-bottom:16px; }
-    .empty-state h3 { font-family:'Syne',sans-serif; color:var(--text2); margin-bottom:8px; }
-
-    /* DASHBOARD */
-    .stat-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; padding:0 18px 18px; }
-    .stat-card { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:16px; }
-    .stat-value { font-family:'Syne',sans-serif; font-size:26px; font-weight:800; line-height:1; margin-bottom:4px; }
-    .stat-label { font-size:11px; color:var(--text2); text-transform:uppercase; letter-spacing:.5px; }
-    .stat-icon { font-size:24px; margin-bottom:8px; }
-    .chart-area { margin:0 18px 18px; background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:16px; }
-    .chart-title { font-family:'Syne',sans-serif; font-size:14px; font-weight:700; margin-bottom:14px; color:var(--text2); }
-    .bar-chart { display:flex; align-items:flex-end; gap:8px; height:100px; }
-    .bar-wrap { flex:1; display:flex; flex-direction:column; align-items:center; gap:4px; }
-    .bar { width:100%; border-radius:4px 4px 0 0; background:var(--accent); opacity:.7; transition:opacity .2s; min-height:4px; }
-    .bar:hover { opacity:1; }
-    .bar-label { font-size:9px; color:var(--text3); }
-    .recent-header { font-family:'Syne',sans-serif; font-size:14px; font-weight:700; color:var(--text2); padding:0 18px 12px; }
-
-    /* MODAL */
-    .overlay { position:fixed; inset:0; background:rgba(0,0,0,.75); z-index:100; display:none; align-items:flex-end; backdrop-filter:blur(4px); }
-    .overlay.open { display:flex; }
-    .modal { background:var(--surface); border-radius:var(--radius) var(--radius) 0 0; width:100%; max-height:93vh; overflow-y:auto; padding:0 0 24px; animation:slideUp .3s ease; }
-    .modal::-webkit-scrollbar { width:0; }
-    @keyframes slideUp { from{transform:translateY(100%)} to{transform:translateY(0)} }
-    .modal-handle { text-align:center; padding:14px; }
-    .modal-handle::before { content:''; display:inline-block; width:36px; height:4px; background:var(--border); border-radius:2px; }
-    .modal-title { font-family:'Syne',sans-serif; font-size:18px; font-weight:800; padding:0 18px 16px; border-bottom:1px solid var(--border); }
-    .modal-body { padding:20px 18px 0; }
-    .modal-footer { padding:16px 18px 0; display:flex; gap:10px; }
-
-    /* FORM */
-    .form-group { margin-bottom:14px; }
-    .form-label { display:block; font-size:12px; color:var(--text2); margin-bottom:6px; font-weight:500; text-transform:uppercase; letter-spacing:.5px; }
-    .form-input,.form-select,.form-textarea { width:100%; background:var(--surface2); border:1px solid var(--border); border-radius:var(--radius-sm); padding:11px 14px; color:var(--text); font-size:14px; font-family:'DM Sans',sans-serif; outline:none; transition:border .2s; }
-    .form-input:focus,.form-select:focus,.form-textarea:focus { border-color:var(--accent); }
-    .form-textarea { resize:vertical; min-height:70px; }
-    .form-select option { background:var(--surface2); color:var(--text); }
-    .form-row { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
-    .form-section { font-family:'Syne',sans-serif; font-size:12px; font-weight:700; color:var(--text3); text-transform:uppercase; letter-spacing:1px; margin:20px 0 12px; padding-bottom:6px; border-bottom:1px solid var(--border); }
-
-    /* BAKIM SECENEKLERI GRID */
-    .bakim-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:14px; }
-    .bakim-item { background:var(--surface2); border:2px solid var(--border); border-radius:var(--radius-sm); padding:10px 12px; cursor:pointer; transition:all .2s; display:flex; align-items:center; gap:8px; }
-    .bakim-item.selected { border-color:var(--accent); background:rgba(249,115,22,.08); }
-    .bakim-item-icon { font-size:20px; flex-shrink:0; }
-    .bakim-item-name { font-size:12px; font-weight:600; line-height:1.3; }
-    .bakim-item-ucret { margin-top:2px; font-size:11px; color:var(--text3); }
-
-    /* SECILI BAKIM LISTESI */
-    .secili-list { display:flex; flex-direction:column; gap:8px; margin-bottom:12px; }
-    .secili-item { display:flex; align-items:center; gap:8px; background:var(--surface2); border:1px solid var(--border); border-radius:var(--radius-sm); padding:10px 12px; }
-    .secili-item-name { flex:1; font-size:13px; font-weight:500; }
-    .secili-ucret { width:100px; flex-shrink:0; }
-    .remove-btn { width:32px; height:32px; flex-shrink:0; background:rgba(239,68,68,.1); border:1px solid rgba(239,68,68,.2); border-radius:var(--radius-sm); color:var(--red); cursor:pointer; display:grid; place-items:center; font-size:16px; transition:all .2s; }
-    .remove-btn:hover { background:rgba(239,68,68,.25); }
+    /* SEÇİLİ KALEMLER */
+    .secili-kalemler{display:flex;flex-direction:column;gap:8px;margin-bottom:12px}
+    .secili-kalem{display:flex;gap:8px;align-items:center;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:8px 10px}
+    .secili-kalem-ad{flex:1;font-size:13px;font-weight:500}
+    .ucret-input{width:95px;flex-shrink:0}
+    .remove-btn{width:32px;height:32px;flex-shrink:0;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.2);border-radius:var(--radius-sm);color:var(--red);cursor:pointer;display:grid;place-items:center;font-size:16px;transition:all .2s}
+    .remove-btn:hover{background:rgba(239,68,68,.25)}
 
     /* PHOTOS */
-    .photo-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-bottom:12px; }
-    .photo-thumb { aspect-ratio:1; border-radius:var(--radius-sm); object-fit:cover; border:1px solid var(--border); cursor:pointer; transition:transform .2s; }
-    .photo-thumb:hover { transform:scale(1.05); }
-    .photo-add { aspect-ratio:1; border-radius:var(--radius-sm); background:var(--surface2); border:2px dashed var(--border); display:grid; place-items:center; cursor:pointer; transition:all .2s; color:var(--text3); font-size:28px; }
-    .photo-add:hover { border-color:var(--accent); color:var(--accent); }
-    #file-input { display:none; }
+    .photo-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px}
+    .photo-thumb{aspect-ratio:1;border-radius:var(--radius-sm);object-fit:cover;background:var(--surface2);border:1px solid var(--border);cursor:pointer;transition:transform .2s}
+    .photo-add{aspect-ratio:1;border-radius:var(--radius-sm);background:var(--surface2);border:2px dashed var(--border);display:grid;place-items:center;cursor:pointer;transition:all .2s;color:var(--text3);font-size:28px}
+    .photo-add:hover{border-color:var(--accent);color:var(--accent)}
 
     /* DETAIL */
-    .detail-header { background:linear-gradient(135deg,var(--surface2),var(--surface)); padding:20px 18px; border-bottom:1px solid var(--border); }
-    .detail-title { font-family:'Syne',sans-serif; font-size:22px; font-weight:800; }
-    .detail-sub { color:var(--text2); font-size:13px; margin-top:4px; }
-    .detail-section { padding:14px 18px; border-bottom:1px solid var(--border); }
-    .detail-section-title { font-size:11px; color:var(--text3); text-transform:uppercase; letter-spacing:1px; font-weight:700; margin-bottom:10px; }
-    .detail-row { display:flex; justify-content:space-between; margin-bottom:8px; align-items:baseline; }
-    .detail-key { font-size:13px; color:var(--text2); }
-    .detail-val { font-size:14px; font-weight:500; text-align:right; }
-    .price-highlight { font-family:'Syne',sans-serif; font-size:24px; font-weight:800; color:var(--accent); }
-
-    /* PRICE TOTAL */
-    .price-total-row { display:flex; justify-content:space-between; align-items:center; background:rgba(249,115,22,.08); border:1px solid rgba(249,115,22,.3); border-radius:var(--radius-sm); padding:12px 14px; margin-top:8px; }
-    .price-total-label { font-size:13px; color:var(--text2); font-weight:500; }
-    .price-total-val { font-family:'Syne',sans-serif; font-size:22px; font-weight:800; color:var(--accent); }
+    .detail-header{background:linear-gradient(135deg,var(--surface2),var(--surface));padding:20px 18px;border-bottom:1px solid var(--border)}
+    .detail-title{font-family:'Syne',sans-serif;font-size:22px;font-weight:800}
+    .detail-sub{color:var(--text2);font-size:13px;margin-top:4px}
+    .detail-section{padding:16px 18px;border-bottom:1px solid var(--border)}
+    .detail-section-title{font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:1px;font-weight:700;margin-bottom:10px}
+    .detail-row{display:flex;justify-content:space-between;margin-bottom:8px;align-items:baseline}
+    .detail-key{font-size:13px;color:var(--text2)}
+    .detail-val{font-size:14px;font-weight:500;color:var(--text);text-align:right}
+    .price-highlight{font-family:'Syne',sans-serif;font-size:24px;font-weight:800;color:var(--accent)}
+    .price-total-row{display:flex;justify-content:space-between;align-items:center;background:var(--surface2);border-radius:var(--radius-sm);padding:12px 14px;margin-top:8px;border:1px solid var(--border)}
+    .price-total-label{font-size:13px;color:var(--text2);font-weight:500}
+    .price-total-val{font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:var(--accent)}
 
     /* TABS */
-    .tabs { display:flex; overflow-x:auto; padding:0 18px; gap:8px; margin-bottom:16px; scrollbar-width:none; }
-    .tab { flex-shrink:0; padding:7px 16px; border-radius:20px; font-size:13px; font-weight:500; border:1px solid var(--border); cursor:pointer; transition:all .2s; color:var(--text2); background:var(--surface2); }
-    .tab.active { background:var(--accent); color:#fff; border-color:var(--accent); }
+    .tabs{display:flex;overflow-x:auto;padding:0 18px;gap:8px;margin-bottom:16px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+    .tab{
+      -webkit-appearance:none;appearance:none;
+      flex-shrink:0;padding:7px 16px;
+      border-radius:20px;font-size:13px;font-weight:500;
+      border:1px solid var(--border);
+      cursor:pointer;touch-action:manipulation;
+      transition:all .2s;color:var(--text2);
+      background:var(--surface2);
+      font-family:'DM Sans',sans-serif;
+    }
+    .tab.active{background:var(--accent);color:#fff;border-color:var(--accent)}
 
-    /* REPORTS */
-    .report-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; padding:0 18px 18px; }
-    .report-card { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:20px 16px; cursor:pointer; transition:all .2s; text-align:center; }
-    .report-card:hover { border-color:var(--accent); transform:translateY(-2px); }
-    .report-icon { font-size:32px; margin-bottom:10px; }
-    .report-name { font-family:'Syne',sans-serif; font-size:13px; font-weight:700; margin-bottom:4px; }
-    .report-desc { font-size:11px; color:var(--text2); }
+    /* REPORT */
+    .report-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:0 18px 18px}
+    .report-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px 16px;cursor:pointer;transition:all .2s;text-align:center}
+    .report-card:hover{border-color:var(--accent);transform:translateY(-2px)}
+    .report-icon{font-size:32px;margin-bottom:10px}
+    .report-name{font-family:'Syne',sans-serif;font-size:13px;font-weight:700;margin-bottom:4px}
+    .report-desc{font-size:11px;color:var(--text2)}
 
     /* TOAST */
-    .toast { position:fixed; bottom:calc(var(--nav-h) + 16px); left:18px; right:18px; background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-sm); padding:14px 16px; display:flex; align-items:center; gap:10px; z-index:999; transform:translateY(100%); opacity:0; transition:all .3s; box-shadow:var(--shadow); font-size:14px; }
-    .toast.show { transform:translateY(0); opacity:1; }
-    .toast.success { border-color:var(--green); }
-    .toast.error { border-color:var(--red); }
+    .toast{position:fixed;bottom:calc(var(--nav-h) + var(--safe-bottom) + 16px);left:18px;right:18px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);padding:14px 16px;display:flex;align-items:center;gap:10px;z-index:999;transform:translateY(100%);opacity:0;transition:all .3s;box-shadow:var(--shadow);font-size:14px}
+    .toast.show{transform:translateY(0);opacity:1}
+    .toast.success{border-color:var(--green)}
+    .toast.error{border-color:var(--red)}
 
-    /* ARAC BOX */
-    .arac-box { background:var(--surface2); border:1px solid var(--border); border-radius:var(--radius-sm); padding:12px; margin-bottom:10px; }
-    .arac-box-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; }
-    .arac-box-title { font-size:12px; color:var(--text3); font-weight:700; text-transform:uppercase; letter-spacing:.5px; }
-
-    /* WhatsApp button */
-    .btn-whatsapp { background:rgba(37,211,102,.15); color:#25d366; border:1px solid rgba(37,211,102,.3); }
-    .btn-whatsapp:hover { background:rgba(37,211,102,.25); }
+    .custom-kalem-row{display:flex;gap:8px;margin-bottom:12px}
+    .custom-kalem-row .form-input{flex:1}
+    .uppercase-live{text-transform:uppercase}
   </style>
 </head>
 <body>
 <div id="app">
-  <!-- TOP BAR -->
   <div class="topbar">
     <div class="topbar-logo">Araç<span>Bakım</span></div>
     <div class="topbar-actions">
-      <div class="icon-btn" onclick="exportData()" title="Yedekle">📤</div>
+      <div class="icon-btn" onclick="exportData()" title="Yedek Al">📤</div>
       <div class="icon-btn" onclick="showSearch()" title="Ara">🔍</div>
     </div>
   </div>
 
-  <!-- CONTENT -->
   <div class="content" id="content">
 
     <!-- DASHBOARD -->
-    <div class="page active" id="page-dashboard">
+    <div class="page active" id="page-dashboard" style="display:block">
       <div class="section-header">
-        <div>
-          <div class="section-title">Genel Bakış</div>
-          <div class="section-sub" id="dash-date"></div>
-        </div>
+        <div><div class="section-title">Genel Bakış</div><div class="section-sub" id="dash-date"></div></div>
       </div>
       <div class="stat-grid">
         <div class="stat-card"><div class="stat-icon">👥</div><div class="stat-value" id="s-musteri">0</div><div class="stat-label">Müşteri</div></div>
@@ -242,47 +300,39 @@
     </div>
 
     <!-- MÜŞTERİ -->
-    <div class="page" id="page-musteri">
+    <div class="page" id="page-musteri" style="display:none">
       <div class="section-header">
-        <div>
-          <div class="section-title">Müşteriler</div>
-          <div class="section-sub" id="musteri-count"></div>
-        </div>
+        <div><div class="section-title">Müşteriler</div><div class="section-sub" id="musteri-count"></div></div>
         <button class="btn btn-primary" onclick="openMusteriModal()">＋ Ekle</button>
       </div>
       <div class="search-wrap">
-        <input class="search-input" id="musteri-search" placeholder="Ad, soyad veya plaka ara..." oninput="searchMusteri(this.value)" />
+        <input class="search-input" id="musteri-search" placeholder="Ad, soyad veya plaka ara..." oninput="renderMusteriler(this.value)" />
       </div>
       <div class="card-list" id="musteri-list"></div>
     </div>
 
     <!-- BAKIM -->
-    <div class="page" id="page-bakim">
+    <div class="page" id="page-bakim" style="display:none">
       <div class="section-header">
-        <div>
-          <div class="section-title">Bakımlar</div>
-          <div class="section-sub" id="bakim-count"></div>
-        </div>
+        <div><div class="section-title">Bakımlar</div><div class="section-sub" id="bakim-count"></div></div>
         <button class="btn btn-primary" onclick="openBakimModal()">＋ Ekle</button>
       </div>
       <div class="tabs" id="bakim-tabs">
-        <div class="tab active" onclick="filterBakim('tumu',this)">Tümü</div>
-        <div class="tab" onclick="filterBakim('yağ',this)">Yağ</div>
-        <div class="tab" onclick="filterBakim('fren',this)">Fren</div>
-        <div class="tab" onclick="filterBakim('lastik',this)">Lastik</div>
-        <div class="tab" onclick="filterBakim('motor',this)">Motor</div>
-        <div class="tab" onclick="filterBakim('genel',this)">Genel</div>
+        <button class="tab active" onclick="filterBakim('tumu',this)">Tümü</button>
+        <button class="tab" onclick="filterBakim('yağ',this)">Yağ</button>
+        <button class="tab" onclick="filterBakim('fren',this)">Fren</button>
+        <button class="tab" onclick="filterBakim('balata',this)">Balata</button>
+        <button class="tab" onclick="filterBakim('lastik',this)">Lastik</button>
+        <button class="tab" onclick="filterBakim('filtre',this)">Filtre</button>
+        <button class="tab" onclick="filterBakim('genel',this)">Genel</button>
       </div>
       <div class="card-list" id="bakim-list"></div>
     </div>
 
     <!-- RAPOR -->
-    <div class="page" id="page-rapor">
+    <div class="page" id="page-rapor" style="display:none">
       <div class="section-header">
-        <div>
-          <div class="section-title">Raporlar</div>
-          <div class="section-sub">İstatistikler ve dışa aktarma</div>
-        </div>
+        <div><div class="section-title">Raporlar</div><div class="section-sub">İstatistikler ve dışa aktarma</div></div>
       </div>
       <div class="report-grid">
         <div class="report-card" onclick="showReport('aylik')"><div class="report-icon">📊</div><div class="report-name">Aylık Gelir</div><div class="report-desc">Bu ayın özeti</div></div>
@@ -290,21 +340,27 @@
         <div class="report-card" onclick="showReport('musteribakim')"><div class="report-icon">🏆</div><div class="report-name">En Çok Bakım</div><div class="report-desc">Müşteri sıralaması</div></div>
         <div class="report-card" onclick="showReport('csv')"><div class="report-icon">📁</div><div class="report-name">CSV İndir</div><div class="report-desc">Tüm bakım verileri</div></div>
       </div>
-      <div id="report-content"></div>
     </div>
 
-  </div><!-- .content -->
+  </div>
 
-  <!-- BOTTOM NAV -->
-  <nav class="bottom-nav">
-    <div class="nav-item active" id="nav-dashboard" onclick="switchPage('dashboard')"><div class="nav-icon">🏠</div><div>Ana Sayfa</div></div>
-    <div class="nav-item" id="nav-musteri" onclick="switchPage('musteri')"><div class="nav-icon">👤</div><div>Müşteri</div></div>
-    <div class="nav-item" id="nav-bakim" onclick="switchPage('bakim')"><div class="nav-icon">🔧</div><div>Bakım</div></div>
-    <div class="nav-item" id="nav-rapor" onclick="switchPage('rapor')"><div class="nav-icon">📊</div><div>Rapor</div></div>
+  <nav class="bottom-nav" role="navigation">
+    <button class="nav-item active" id="nav-dashboard" onclick="switchPage('dashboard')">
+      <span class="nav-icon">🏠</span><span>Ana Sayfa</span>
+    </button>
+    <button class="nav-item" id="nav-musteri" onclick="switchPage('musteri')">
+      <span class="nav-icon">👤</span><span>Müşteri</span>
+    </button>
+    <button class="nav-item" id="nav-bakim" onclick="switchPage('bakim')">
+      <span class="nav-icon">🔧</span><span>Bakım</span>
+    </button>
+    <button class="nav-item" id="nav-rapor" onclick="switchPage('rapor')">
+      <span class="nav-icon">📊</span><span>Rapor</span>
+    </button>
   </nav>
 </div>
 
-<!-- ═══════════ MÜŞTERİ MODAL ═══════════ -->
+<!-- MÜŞTERİ MODAL -->
 <div class="overlay" id="overlay-musteri" onclick="closeModalOut(event,'overlay-musteri')">
   <div class="modal">
     <div class="modal-handle"></div>
@@ -315,11 +371,11 @@
       <div class="form-row">
         <div class="form-group">
           <label class="form-label">Ad *</label>
-          <input class="form-input" id="m-ad" placeholder="Ad" oninput="toUpperInput(this)" />
+          <input class="form-input uppercase-live" id="m-ad" placeholder="AD" oninput="this.value=this.value.toLocaleUpperCase('tr-TR')" />
         </div>
         <div class="form-group">
           <label class="form-label">Soyad *</label>
-          <input class="form-input" id="m-soyad" placeholder="Soyad" oninput="toUpperInput(this)" />
+          <input class="form-input uppercase-live" id="m-soyad" placeholder="SOYAD" oninput="this.value=this.value.toLocaleUpperCase('tr-TR')" />
         </div>
       </div>
       <div class="form-group">
@@ -334,7 +390,7 @@
         <label class="form-label">Adres</label>
         <textarea class="form-textarea" id="m-adres" placeholder="Adres..." style="min-height:60px"></textarea>
       </div>
-      <div class="form-section">Araç Bilgileri</div>
+      <div class="form-section">Araçlar</div>
       <div id="arac-list-form"></div>
       <button class="btn btn-secondary btn-sm" onclick="addAracField()" style="width:100%;justify-content:center">＋ Araç Ekle</button>
     </div>
@@ -345,14 +401,13 @@
   </div>
 </div>
 
-<!-- ═══════════ BAKIM MODAL ═══════════ -->
+<!-- BAKIM MODAL -->
 <div class="overlay" id="overlay-bakim" onclick="closeModalOut(event,'overlay-bakim')">
   <div class="modal">
     <div class="modal-handle"></div>
     <div class="modal-title" id="bakim-modal-title">Yeni Bakım Kaydı</div>
     <div class="modal-body">
       <input type="hidden" id="b-id" />
-
       <div class="form-section">Müşteri & Araç</div>
       <div class="form-group">
         <label class="form-label">Müşteri *</label>
@@ -362,41 +417,33 @@
       </div>
       <div class="form-group" id="arac-secim-group" style="display:none">
         <label class="form-label">Araç *</label>
-        <select class="form-select" id="b-arac-plaka" onchange="onAracSelect()"></select>
+        <select class="form-select" id="b-arac-plaka"></select>
       </div>
-      <div id="secilen-arac-info" style="display:none;margin-bottom:14px"></div>
-
       <div class="form-row">
         <div class="form-group">
           <label class="form-label">Mevcut KM</label>
           <input class="form-input" id="b-km" type="number" placeholder="75000" />
         </div>
         <div class="form-group">
-          <label class="form-label">Sonraki KM</label>
+          <label class="form-label">Sonraki Bakım KM</label>
           <input class="form-input" id="b-sonraki-km" type="number" placeholder="80000" />
         </div>
       </div>
 
-      <div class="form-section">Bakım İşlemleri</div>
-      <p style="font-size:12px;color:var(--text2);margin-bottom:10px">İşlem seçin, ücretini girin. Birden fazla seçebilirsiniz.</p>
-      <!-- BAKIM KATEGORİ FİLTRE -->
-      <div class="tabs" id="bakim-kategori-tabs" style="padding:0;margin-bottom:10px">
-        <div class="tab active" onclick="filterBakimKategori('tumu',this)">Tümü</div>
-        <div class="tab" onclick="filterBakimKategori('fren',this)">Fren</div>
-        <div class="tab" onclick="filterBakimKategori('yaglama',this)">Yağlama</div>
-        <div class="tab" onclick="filterBakimKategori('motor',this)">Motor</div>
-        <div class="tab" onclick="filterBakimKategori('lastik',this)">Lastik</div>
-        <div class="tab" onclick="filterBakimKategori('diger',this)">Diğer</div>
-      </div>
-      <div class="bakim-grid" id="bakim-secenekleri-grid"></div>
+      <div class="form-section">Bakım Kalemleri</div>
+      <div style="font-size:12px;color:var(--text2);margin-bottom:10px">İşlemleri seçin, sonra ücretleri girin</div>
+      <div class="kalem-grid" id="kalem-grid"></div>
 
-      <div id="secili-islemler-wrap" style="display:none">
-        <div style="font-size:12px;color:var(--text2);margin-bottom:8px;font-weight:600">SEÇİLEN İŞLEMLER</div>
-        <div class="secili-list" id="secili-islemler-list"></div>
+      <div class="form-section">Özel Kalem</div>
+      <div class="custom-kalem-row">
+        <input class="form-input" id="custom-kalem-ad" placeholder="Özel parça / işlem adı..." />
+        <button class="btn btn-secondary btn-sm" onclick="addCustomKalem()">＋ Ekle</button>
       </div>
 
-      <!-- ÖZEL PARÇA EKLEME -->
-      <button class="btn btn-secondary btn-sm" onclick="addOzelIslem()" style="width:100%;justify-content:center;margin-bottom:14px">＋ Özel İşlem / Parça Ekle</button>
+      <div class="form-section">Seçilen Kalemler & Ücretler</div>
+      <div class="secili-kalemler" id="secili-kalemler">
+        <div style="color:var(--text3);font-size:13px;text-align:center;padding:10px">Yukarıdan kalem seçin</div>
+      </div>
 
       <div class="form-group">
         <label class="form-label">İşçilik Ücreti (₺)</label>
@@ -407,16 +454,16 @@
         <div class="price-total-val" id="toplam-goster">0 ₺</div>
       </div>
 
-      <div class="form-group" style="margin-top:14px">
+      <div class="form-group" style="margin-top:16px">
         <label class="form-label">Genel Notlar</label>
-        <textarea class="form-textarea" id="b-notlar" placeholder="Ek notlar..."></textarea>
+        <textarea class="form-textarea" id="b-notlar" placeholder="Ek notlar, müşteriye öneriler..."></textarea>
       </div>
 
       <div class="form-section">Fotoğraflar</div>
       <div class="photo-grid" id="photo-grid">
         <div class="photo-add" onclick="document.getElementById('file-input').click()">＋</div>
       </div>
-      <input type="file" id="file-input" accept="image/*,video/*" multiple onchange="handleFiles(event)" />
+      <input type="file" id="file-input" accept="image/*,video/*" multiple onchange="handleFiles(event)" style="display:none" />
     </div>
     <div class="modal-footer">
       <button class="btn btn-secondary" style="flex:1" onclick="closeModal('overlay-bakim')">İptal</button>
@@ -435,225 +482,187 @@
   <div class="modal" id="report-modal-content"></div>
 </div>
 
-<!-- TOAST -->
 <div class="toast" id="toast"></div>
 
 <script>
 // ════════════════════════════════════════════
-//  ARAÇ MARKA / MODEL DİCTİONARY
+//  ARAÇ DICTIONARY
 // ════════════════════════════════════════════
 const ARAC_DB = {
-  "Toyota":    ["Corolla","Yaris","Camry","RAV4","C-HR","Hilux","Land Cruiser","Auris","Avensis","Prius"],
-  "Volkswagen":["Golf","Passat","Polo","Tiguan","T-Roc","Touareg","Caddy","Transporter","Jetta","Arteon"],
-  "Ford":      ["Focus","Fiesta","Mondeo","Kuga","Puma","EcoSport","Transit","Ranger","S-Max","Edge"],
-  "Renault":   ["Clio","Megane","Symbol","Fluence","Kadjar","Captur","Duster","Talisman","Zoe","Master"],
-  "Fiat":      ["Egea","Doblo","Tipo","500","Punto","Bravo","Linea","Panda","Ducato","Fullback"],
-  "Hyundai":   ["i20","i30","Tucson","Santa Fe","Elantra","Accent","Kona","Ioniq","ix35","H-1"],
-  "Kia":       ["Rio","Ceed","Sportage","Sorento","Stinger","Niro","Picanto","Cerato","Carnival","EV6"],
-  "Mercedes":  ["A Serisi","B Serisi","C Serisi","E Serisi","S Serisi","GLA","GLC","GLE","Sprinter","Vito"],
-  "BMW":       ["1 Serisi","2 Serisi","3 Serisi","4 Serisi","5 Serisi","X1","X3","X5","M3","M5"],
-  "Audi":      ["A1","A3","A4","A5","A6","Q3","Q5","Q7","TT","e-tron"],
-  "Peugeot":   ["208","301","308","407","508","2008","3008","5008","Partner","Boxer"],
-  "Citroën":   ["C1","C3","C4","C5","Berlingo","Jumper","SpaceTourer","C-Elysée"],
-  "Nissan":    ["Micra","Juke","Qashqai","X-Trail","Navara","Leaf","Note","Pulsar"],
-  "Honda":     ["Civic","Jazz","HR-V","CR-V","Accord","City","Legend","Insight"],
-  "Opel":      ["Astra","Corsa","Insignia","Mokka","Crossland","Grandland","Zafira","Combo"],
-  "Skoda":     ["Fabia","Octavia","Superb","Karoq","Kodiaq","Rapid","Scala","Enyaq"],
-  "Seat":      ["Ibiza","Leon","Ateca","Tarraco","Arona","Toledo","Alhambra","Mii"],
-  "Dacia":     ["Sandero","Logan","Duster","Lodgy","Dokker","Spring"],
-  "Mitsubishi":["Colt","Lancer","Outlander","Eclipse Cross","L200","ASX","Pajero"],
-  "Volvo":     ["V40","V60","V90","S60","S90","XC40","XC60","XC90"],
-  "Subaru":    ["Impreza","Legacy","Forester","Outback","XV","WRX","BRZ"],
-  "Mazda":     ["2","3","6","CX-3","CX-5","CX-30","MX-5"],
-  "Suzuki":    ["Swift","Vitara","S-Cross","Baleno","Jimny","Ignis","Alto"],
-  "Jeep":      ["Renegade","Compass","Cherokee","Grand Cherokee","Wrangler"],
-  "Land Rover":["Defender","Discovery","Freelander","Range Rover","Evoque","Velar"],
-  "Porsche":   ["911","Macan","Cayenne","Panamera","Taycan","Boxster"],
-  "Alfa Romeo":["Giulia","Stelvio","Giulietta","Mito","Tonale"],
-  "Lada":      ["Niva","Granta","Vesta","XRAY","Largus"],
-  "Tofaş":     ["Şahin","Doğan","Kartal","Tempra","Marea","Albea","Linea"],
-  "Diğer":     ["Diğer"]
+  "Audi":["A1","A3","A4","A5","A6","A7","A8","Q2","Q3","Q5","Q7","Q8","TT","R8","e-tron"],
+  "BMW":["1 Serisi","2 Serisi","3 Serisi","4 Serisi","5 Serisi","6 Serisi","7 Serisi","X1","X2","X3","X4","X5","X6","X7","Z4","M3","M5"],
+  "Chevrolet":["Aveo","Cruze","Spark","Captiva","Malibu","Tahoe"],
+  "Citroën":["C1","C2","C3","C4","C5","C5 Aircross","Berlingo","Jumper","SpaceTourer"],
+  "Dacia":["Sandero","Logan","Duster","Spring","Jogger","Lodgy"],
+  "Fiat":["Egea","500","Panda","Tipo","Doblo","Ducato","Bravo","Linea","Stilo","Punto","Tempra","Uno","Palio"],
+  "Ford":["Fiesta","Focus","Mondeo","Kuga","Puma","EcoSport","Mustang","Ranger","Transit","S-Max","Galaxy"],
+  "Honda":["Civic","Jazz","HR-V","CR-V","Accord","Fit"],
+  "Hyundai":["i10","i20","i30","i40","Elantra","Tucson","Santa Fe","Kona","Ioniq","Accent","Sonata"],
+  "Kia":["Picanto","Rio","Ceed","Stinger","Sportage","Sorento","Stonic","Niro","Soul","EV6"],
+  "Mazda":["Mazda2","Mazda3","Mazda6","CX-3","CX-5","CX-30","MX-5"],
+  "Mercedes":["A Serisi","B Serisi","C Serisi","E Serisi","S Serisi","CLA","CLS","GLA","GLB","GLC","GLE","GLS","G Serisi"],
+  "Mitsubishi":["Colt","Lancer","Eclipse Cross","Outlander","ASX","L200","Pajero"],
+  "Nissan":["Micra","Juke","Qashqai","X-Trail","Navara","Leaf","Ariya","Pulsar"],
+  "Opel":["Corsa","Astra","Insignia","Mokka","Grandland","Crossland","Zafira","Combo","Vivaro"],
+  "Peugeot":["107","108","208","308","408","508","2008","3008","5008","Partner","Expert","Rifter"],
+  "Renault":["Clio","Megane","Laguna","Captur","Kadjar","Koleos","Kangoo","Trafic","Zoe","Twingo","Symbol","Fluence","Latitude","Scenic"],
+  "Seat":["Ibiza","Leon","Arona","Ateca","Tarraco","Toledo","Alhambra"],
+  "Skoda":["Fabia","Octavia","Superb","Kamiq","Karoq","Kodiaq","Scala","Enyaq"],
+  "Subaru":["Impreza","Legacy","Outback","Forester","XV","WRX","BRZ"],
+  "Suzuki":["Alto","Swift","Ignis","Vitara","S-Cross","Jimny","Baleno","Celerio"],
+  "Toyota":["Aygo","Yaris","Corolla","Camry","Prius","C-HR","RAV4","Land Cruiser","Hilux","Avensis","Auris"],
+  "Volkswagen":["Polo","Golf","Passat","Arteon","T-Roc","Tiguan","Touareg","Touran","Sharan","Up","Caddy","Transporter"],
+  "Volvo":["V40","V60","V90","S60","S90","XC40","XC60","XC90","C40"],
+  "Diğer":["Diğer Model"]
 };
+const MARKALAR = Object.keys(ARAC_DB).sort();
 
 // ════════════════════════════════════════════
-//  BAKIM İŞLEMLERİ DİCTİONARY
+//  BAKIM KALEMLERİ
 // ════════════════════════════════════════════
-const BAKIM_SECENEKLERI = [
-  // FREN
-  { id:"on-balata",    kat:"fren",    icon:"🔴", ad:"Ön Balata",          varsayilan:0 },
-  { id:"arka-balata",  kat:"fren",    icon:"🔵", ad:"Arka Balata",         varsayilan:0 },
-  { id:"fren-diski-on",kat:"fren",    icon:"⭕", ad:"Ön Fren Diski",       varsayilan:0 },
-  { id:"fren-diski-ar",kat:"fren",    icon:"⭕", ad:"Arka Fren Diski",     varsayilan:0 },
-  { id:"fren-hidrolik",kat:"fren",    icon:"🟡", ad:"Fren Hidrolik Yağı",  varsayilan:0 },
-  { id:"el-freni",     kat:"fren",    icon:"🅿️", ad:"El Freni Ayarı",     varsayilan:0 },
-  { id:"fren-kampana", kat:"fren",    icon:"🔘", ad:"Fren Kampanası",      varsayilan:0 },
-  // YAĞLAMA
-  { id:"motor-yagi",   kat:"yaglama", icon:"🛢️", ad:"Motor Yağı",         varsayilan:0 },
-  { id:"yag-filtresi", kat:"yaglama", icon:"🔩", ad:"Yağ Filtresi",        varsayilan:0 },
-  { id:"sanziman-yagi",kat:"yaglama", icon:"⚙️", ad:"Şanzıman Yağı",      varsayilan:0 },
-  { id:"diferansiyel", kat:"yaglama", icon:"🔄", ad:"Diferansiyel Yağı",   varsayilan:0 },
-  { id:"direksiyon",   kat:"yaglama", icon:"🎯", ad:"Direksiyon Yağı",     varsayilan:0 },
-  { id:"antifriz",     kat:"yaglama", icon:"❄️", ad:"Antifriz / Su",       varsayilan:0 },
-  { id:"klima-gazi",   kat:"yaglama", icon:"💨", ad:"Klima Gazı",          varsayilan:0 },
-  // MOTOR
-  { id:"hava-filtresi",kat:"motor",   icon:"🌬️", ad:"Hava Filtresi",      varsayilan:0 },
-  { id:"kab-filtresi", kat:"motor",   icon:"🌿", ad:"Kabin Filtresi",      varsayilan:0 },
-  { id:"yakit-filtresi",kat:"motor",  icon:"⛽", ad:"Yakıt Filtresi",      varsayilan:0 },
-  { id:"buji",         kat:"motor",   icon:"⚡", ad:"Buji Takımı",         varsayilan:0 },
-  { id:"triger",       kat:"motor",   icon:"🔗", ad:"Triger Seti",         varsayilan:0 },
-  { id:"triger-pompasi",kat:"motor",  icon:"💧", ad:"Triger + Su Pompası", varsayilan:0 },
-  { id:"kayis",        kat:"motor",   icon:"📿", ad:"Kayış / Gergi",       varsayilan:0 },
-  { id:"aku",          kat:"motor",   icon:"🔋", ad:"Akü Değişimi",        varsayilan:0 },
-  { id:"amortasor-on", kat:"motor",   icon:"📌", ad:"Ön Amortisör",        varsayilan:0 },
-  { id:"amortasor-ar", kat:"motor",   icon:"📌", ad:"Arka Amortisör",      varsayilan:0 },
-  // LASTİK
-  { id:"lastik-degisim",kat:"lastik", icon:"🔘", ad:"Lastik Değişimi",     varsayilan:0 },
-  { id:"lastik-rot",   kat:"lastik",  icon:"⚖️", ad:"Rot Balans",         varsayilan:0 },
-  { id:"lastik-basinc",kat:"lastik",  icon:"🅿️", ad:"Lastik Basınç",     varsayilan:0 },
-  { id:"jant-tamir",   kat:"lastik",  icon:"⭕", ad:"Jant Tamiri",         varsayilan:0 },
-  // DİĞER
-  { id:"genel-bakim",  kat:"diger",   icon:"🔧", ad:"Genel Bakım",         varsayilan:0 },
-  { id:"devir-olcum",  kat:"diger",   icon:"📊", ad:"Devir Ölçüm (Arıza)", varsayilan:0 },
-  { id:"cam-suyu",     kat:"diger",   icon:"💦", ad:"Cam Suyu",            varsayilan:0 },
-  { id:"silecek",      kat:"diger",   icon:"🌧️", ad:"Silecek Değişimi",   varsayilan:0 },
-  { id:"far-ayar",     kat:"diger",   icon:"💡", ad:"Far Ayarı",           varsayilan:0 },
-  { id:"aksesuar",     kat:"diger",   icon:"🛠️", ad:"Aksesuar / Diğer",   varsayilan:0 },
+const BAKIM_KALEMLERI = [
+  {id:'motor-yag',     icon:'🛢️', ad:'Motor Yağı',            tur:'Yağ Değişimi'},
+  {id:'yag-filtresi',  icon:'🔲', ad:'Yağ Filtresi',          tur:'Yağ Değişimi'},
+  {id:'on-balata',     icon:'🔴', ad:'Ön Balata',             tur:'Fren/Balata'},
+  {id:'arka-balata',   icon:'🟠', ad:'Arka Balata',           tur:'Fren/Balata'},
+  {id:'on-disk',       icon:'⭕', ad:'Ön Fren Diski',         tur:'Fren/Balata'},
+  {id:'arka-disk',     icon:'⭕', ad:'Arka Fren Diski',       tur:'Fren/Balata'},
+  {id:'fren-hidrolik', icon:'💧', ad:'Fren Hidrolik Yağı',    tur:'Fren/Balata'},
+  {id:'el-freni',      icon:'🅿️', ad:'El Freni Ayarı',        tur:'Fren/Balata'},
+  {id:'hava-filtresi', icon:'💨', ad:'Hava Filtresi',         tur:'Filtre Değişimi'},
+  {id:'yakit-filtresi',icon:'⛽', ad:'Yakıt Filtresi',        tur:'Filtre Değişimi'},
+  {id:'polin-filtresi',icon:'🌿', ad:'Polen Filtresi',        tur:'Filtre Değişimi'},
+  {id:'lastik',        icon:'⬛', ad:'Lastik Değişimi',       tur:'Lastik'},
+  {id:'rot-balans',    icon:'🔄', ad:'Rot Balans',            tur:'Lastik'},
+  {id:'lastik-basinc', icon:'🔵', ad:'Lastik Basınç',         tur:'Lastik'},
+  {id:'aku',           icon:'🔋', ad:'Akü Değişimi',          tur:'Elektrik'},
+  {id:'far-ampul',     icon:'💡', ad:'Far Ampul',             tur:'Elektrik'},
+  {id:'buji',          icon:'⚡', ad:'Buji Değişimi',         tur:'Motor'},
+  {id:'triger-seti',   icon:'⚙️', ad:'Triger Seti',           tur:'Motor'},
+  {id:'antifriz',      icon:'❄️', ad:'Antifriz / Su',         tur:'Soğutma'},
+  {id:'radyator',      icon:'♨️', ad:'Radyatör Bakımı',       tur:'Soğutma'},
+  {id:'silecek-suyu',  icon:'🚿', ad:'Silecek Suyu',          tur:'Sıvı'},
+  {id:'direksiyon-siv',icon:'🎯', ad:'Direksiyon Sıvısı',     tur:'Sıvı'},
+  {id:'silecek-lastik',icon:'🌧️', ad:'Silecek Lastiği',       tur:'Genel'},
+  {id:'ic-temizlik',   icon:'🧹', ad:'İç Temizlik',           tur:'Temizlik'},
+  {id:'dis-yikama',    icon:'🫧', ad:'Dış Yıkama & Cila',     tur:'Temizlik'},
+  {id:'genel-bakim',   icon:'🔧', ad:'Genel Bakım',           tur:'Genel Bakım'},
 ];
 
 // ════════════════════════════════════════════
-//  DATABASE (IndexedDB)
+//  DATABASE
 // ════════════════════════════════════════════
-const DB_NAME = 'AracBakimDB';
-const DB_VERSION = 3;
 let db;
-
 function initDB() {
   return new Promise((res,rej) => {
-    const req = indexedDB.open(DB_NAME, DB_VERSION);
+    const req = indexedDB.open('AracBakimDB',4);
     req.onupgradeneeded = e => {
       const d = e.target.result;
-      if (!d.objectStoreNames.contains('musteriler')) {
-        d.createObjectStore('musteriler', { keyPath:'id' });
-      }
+      if (!d.objectStoreNames.contains('musteriler')) d.createObjectStore('musteriler',{keyPath:'id'});
       if (!d.objectStoreNames.contains('bakimlar')) {
-        const bs = d.createObjectStore('bakimlar', { keyPath:'id' });
+        const bs = d.createObjectStore('bakimlar',{keyPath:'id'});
         bs.createIndex('musteri_id','musteri_id');
         bs.createIndex('tarih','tarih');
       }
       if (!d.objectStoreNames.contains('medya')) {
-        const ms = d.createObjectStore('medya', { keyPath:'id', autoIncrement:true });
-        ms.createIndex('bakim_id','bakim_id');
+        const m = d.createObjectStore('medya',{keyPath:'id',autoIncrement:true});
+        m.createIndex('bakim_id','bakim_id');
       }
     };
-    req.onsuccess = e => { db = e.target.result; res(db); };
+    req.onsuccess = e => { db=e.target.result; res(db); };
     req.onerror = () => rej(req.error);
   });
 }
-function dbGet(store, key) {
-  return new Promise((res,rej) => {
-    const tx = db.transaction(store,'readonly');
-    const req = key!==undefined ? tx.objectStore(store).get(key) : tx.objectStore(store).getAll();
-    req.onsuccess = () => res(req.result);
-    req.onerror = () => rej(req.error);
-  });
-}
-function dbPut(store, data) {
-  return new Promise((res,rej) => {
-    const tx = db.transaction(store,'readwrite');
-    const req = tx.objectStore(store).put(data);
-    req.onsuccess = () => res(req.result);
-    req.onerror = () => rej(req.error);
-  });
-}
-function dbDelete(store, key) {
-  return new Promise((res,rej) => {
-    const tx = db.transaction(store,'readwrite');
-    const req = tx.objectStore(store).delete(key);
-    req.onsuccess = () => res();
-    req.onerror = () => rej(req.error);
-  });
-}
-function dbGetByIndex(store, index, value) {
-  return new Promise((res,rej) => {
-    const tx = db.transaction(store,'readonly');
-    const req = tx.objectStore(store).index(index).getAll(value);
-    req.onsuccess = () => res(req.result);
-    req.onerror = () => rej(req.error);
-  });
-}
-function genId(p) { return p+Date.now().toString(36).toUpperCase()+Math.random().toString(36).slice(2,5).toUpperCase(); }
+const dbGet = (store,key) => new Promise((res,rej)=>{
+  const tx=db.transaction(store,'readonly');
+  const req=key!==undefined?tx.objectStore(store).get(key):tx.objectStore(store).getAll();
+  req.onsuccess=()=>res(req.result); req.onerror=()=>rej(req.error);
+});
+const dbPut = (store,data) => new Promise((res,rej)=>{
+  const tx=db.transaction(store,'readwrite');
+  const req=tx.objectStore(store).put(data);
+  req.onsuccess=()=>res(req.result); req.onerror=()=>rej(req.error);
+});
+const dbDelete = (store,key) => new Promise((res,rej)=>{
+  const tx=db.transaction(store,'readwrite');
+  const req=tx.objectStore(store).delete(key);
+  req.onsuccess=()=>res(); req.onerror=()=>rej(req.error);
+});
+const dbIdx = (store,idx,val) => new Promise((res,rej)=>{
+  const tx=db.transaction(store,'readonly');
+  const req=tx.objectStore(store).index(idx).getAll(val);
+  req.onsuccess=()=>res(req.result); req.onerror=()=>rej(req.error);
+});
+const genId = prefix => prefix+Date.now().toString(36).toUpperCase()+Math.random().toString(36).slice(2,5).toUpperCase();
 
 // ════════════════════════════════════════════
 //  NAVİGASYON
 // ════════════════════════════════════════════
-let currentPage = 'dashboard';
+let currentPage='dashboard';
+const PAGES = ["dashboard","musteri","bakim","rapor"];
+
 function switchPage(page) {
-  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
-  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
-  document.getElementById('page-'+page).classList.add('active');
-  document.getElementById('nav-'+page).classList.add('active');
+  PAGES.forEach(function(p) {
+    var el = document.getElementById("page-" + p);
+    var nav = document.getElementById("nav-" + p);
+    if (el) el.classList.remove("active");
+    if (nav) nav.classList.remove("active");
+  });
+  var target = document.getElementById("page-" + page);
+  var targetNav = document.getElementById("nav-" + page);
+  if (target) target.classList.add("active");
+  if (targetNav) targetNav.classList.add("active");
   currentPage = page;
-  content.scrollTop = 0;
-  if (page==='dashboard') renderDashboard();
-  if (page==='musteri') renderMusteriler();
-  if (page==='bakim') renderBakimlar();
+  var content = document.getElementById("content");
+  if (content) content.scrollTop = 0;
+  // iOS'ta küçük gecikme render'ı tetikler
+  setTimeout(function() {
+    if (page === "dashboard") renderDashboard();
+    if (page === "musteri") renderMusteriler();
+    if (page === "bakim") renderBakimlar();
+  }, 50);
 }
 
 // ════════════════════════════════════════════
 //  DASHBOARD
 // ════════════════════════════════════════════
 async function renderDashboard() {
-  const now = new Date();
-  document.getElementById('dash-date').textContent = now.toLocaleDateString('tr-TR',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
-  const [musteriler,bakimlar] = await Promise.all([dbGet('musteriler'),dbGet('bakimlar')]);
-  const toplam = bakimlar.reduce((s,b)=>s+(b.toplam_ucret||0),0);
-  const buAy = bakimlar.filter(b=>{const t=new Date(b.tarih);return t.getMonth()===now.getMonth()&&t.getFullYear()===now.getFullYear();}).reduce((s,b)=>s+(b.toplam_ucret||0),0);
-  document.getElementById('s-musteri').textContent = musteriler.length;
-  document.getElementById('s-bakim').textContent = bakimlar.length;
-  document.getElementById('s-gelir').textContent = formatMoney(toplam);
-  document.getElementById('s-aylik').textContent = formatMoney(buAy);
-  // Bar chart
-  const aylar = [];
-  for (let i=5;i>=0;i--) {
-    const d = new Date(now.getFullYear(),now.getMonth()-i,1);
-    const gelir = bakimlar.filter(b=>{const t=new Date(b.tarih);return t.getMonth()===d.getMonth()&&t.getFullYear()===d.getFullYear();}).reduce((s,b)=>s+(b.toplam_ucret||0),0);
-    aylar.push({label:d.toLocaleDateString('tr-TR',{month:'short'}),gelir});
-  }
-  const max = Math.max(...aylar.map(a=>a.gelir),1);
-  document.getElementById('bar-chart').innerHTML = aylar.map(a=>`<div class="bar-wrap"><div class="bar" style="height:${Math.max(4,(a.gelir/max)*90)}px" title="${formatMoney(a.gelir)}"></div><div class="bar-label">${a.label}</div></div>`).join('');
-  // Son bakımlar
-  const sorted = [...bakimlar].sort((a,b)=>new Date(b.tarih)-new Date(a.tarih)).slice(0,5);
-  const mustMap = {}; musteriler.forEach(m=>mustMap[m.id]=m);
-  const rl = document.getElementById('recent-list');
-  if (!sorted.length) { rl.innerHTML=`<div class="empty-state"><div class="emoji">🔧</div><h3>Henüz bakım yok</h3></div>`; return; }
-  rl.innerHTML = sorted.map(b=>cardBakim(b,mustMap[b.musteri_id])).join('');
+  const now=new Date();
+  document.getElementById('dash-date').textContent=now.toLocaleDateString('tr-TR',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+  const [musteriler,bakimlar]=await Promise.all([dbGet('musteriler'),dbGet('bakimlar')]);
+  const toplam=bakimlar.reduce((s,b)=>s+(b.toplam_ucret||0),0);
+  const buAy=bakimlar.filter(b=>{const t=new Date(b.tarih);return t.getMonth()===now.getMonth()&&t.getFullYear()===now.getFullYear();}).reduce((s,b)=>s+(b.toplam_ucret||0),0);
+  document.getElementById('s-musteri').textContent=musteriler.length;
+  document.getElementById('s-bakim').textContent=bakimlar.length;
+  document.getElementById('s-gelir').textContent=formatMoney(toplam);
+  document.getElementById('s-aylik').textContent=formatMoney(buAy);
+  const aylar=[];
+  for(let i=5;i>=0;i--){const d=new Date(now.getFullYear(),now.getMonth()-i,1);const g=bakimlar.filter(b=>{const t=new Date(b.tarih);return t.getMonth()===d.getMonth()&&t.getFullYear()===d.getFullYear();}).reduce((s,b)=>s+(b.toplam_ucret||0),0);aylar.push({label:d.toLocaleDateString('tr-TR',{month:'short'}),gelir:g});}
+  const mx=Math.max(...aylar.map(a=>a.gelir),1);
+  document.getElementById('bar-chart').innerHTML=aylar.map(a=>`<div class="bar-wrap"><div class="bar" style="height:${Math.max(4,(a.gelir/mx)*90)}px" title="${formatMoney(a.gelir)}"></div><div class="bar-label">${a.label}</div></div>`).join('');
+  const sorted=[...bakimlar].sort((a,b)=>new Date(b.tarih)-new Date(a.tarih)).slice(0,5);
+  const mm=Object.fromEntries(musteriler.map(m=>[m.id,m]));
+  document.getElementById('recent-list').innerHTML=sorted.length===0?`<div class="empty-state"><div class="emoji">🔧</div><h3>Henüz bakım yok</h3></div>`:sorted.map(b=>cardBakim(b,mm[b.musteri_id])).join('');
 }
 
 // ════════════════════════════════════════════
-//  MÜŞTERİLER
+//  MÜŞTERİ
 // ════════════════════════════════════════════
-let allMusteriler = [];
 async function renderMusteriler(filter='') {
-  allMusteriler = await dbGet('musteriler');
-  const list = filter ? allMusteriler.filter(m=>{
-    const q=filter.toUpperCase();
-    return m.ad?.includes(q)||m.soyad?.includes(q)||m.telefon?.includes(q)||(m.araclar||[]).some(a=>a.plaka?.includes(q));
-  }) : allMusteriler;
-  document.getElementById('musteri-count').textContent = `${list.length} müşteri`;
-  const el = document.getElementById('musteri-list');
-  if (!list.length) { el.innerHTML=`<div class="empty-state"><div class="emoji">👤</div><h3>${filter?'Sonuç bulunamadı':'Henüz müşteri yok'}</h3></div>`; return; }
-  el.innerHTML = list.map(cardMusteri).join('');
+  const all=await dbGet('musteriler');
+  const list=filter?all.filter(m=>{const q=filter.toLocaleUpperCase('tr-TR');return m.ad?.includes(q)||m.soyad?.includes(q)||m.telefon?.includes(filter)||(m.araclar||[]).some(a=>a.plaka?.includes(q));}):all;
+  document.getElementById('musteri-count').textContent=`${list.length} müşteri`;
+  document.getElementById('musteri-list').innerHTML=list.length===0?`<div class="empty-state"><div class="emoji">👤</div><h3>${filter?'Sonuç bulunamadı':'Henüz müşteri yok'}</h3></div>`:list.map(cardMusteri).join('');
 }
-function searchMusteri(v) { renderMusteriler(v); }
 
 function cardMusteri(m) {
-  const araclar = m.araclar||[];
+  const a=m.araclar||[];
   return `<div class="card" onclick="showMusteriDetail('${m.id}')">
     <div class="card-header">
       <div><div class="card-title">${m.ad} ${m.soyad}</div><div class="card-sub">📞 ${m.telefon}</div></div>
-      <span class="badge badge-orange">${araclar.length} araç</span>
+      <span class="badge badge-orange">${a.length} araç</span>
     </div>
-    <div>${araclar.map(a=>`<span class="arac-chip">🚗 ${a.plaka} · ${a.marka} ${a.model}</span>`).join('')}</div>
+    <div class="arac-chips">${a.map(x=>`<span class="arac-chip">🚗 ${x.plaka} · ${x.marka} ${x.model}</span>`).join('')||'<span class="card-sub">Araç yok</span>'}</div>
     <div class="card-actions">
       <button class="btn btn-secondary btn-sm" onclick="event.stopPropagation();editMusteri('${m.id}')">✏️ Düzenle</button>
       <button class="btn btn-secondary btn-sm" onclick="event.stopPropagation();openBakimModalForMusteri('${m.id}')">＋ Bakım</button>
@@ -662,161 +671,131 @@ function cardMusteri(m) {
   </div>`;
 }
 
-// Müşteri modal
-function openMusteriModal() {
-  clearMusteriForm();
-  document.getElementById('musteri-modal-title').textContent = 'Yeni Müşteri';
-  document.getElementById('m-id').value = '';
-  openModal('overlay-musteri');
-}
-
-async function editMusteri(id) {
-  const m = await dbGet('musteriler',id);
-  if (!m) return;
-  document.getElementById('musteri-modal-title').textContent = 'Müşteri Düzenle';
-  document.getElementById('m-id').value = m.id;
-  document.getElementById('m-ad').value = m.ad||'';
-  document.getElementById('m-soyad').value = m.soyad||'';
-  document.getElementById('m-telefon').value = m.telefon||'';
-  document.getElementById('m-email').value = m.email||'';
-  document.getElementById('m-adres').value = m.adres||'';
-  document.getElementById('arac-list-form').innerHTML = '';
-  aracFieldIndex = 0;
-  (m.araclar||[]).forEach(a=>addAracField(a));
-  openModal('overlay-musteri');
-}
-
-let aracFieldIndex = 0;
+// ─── ARAÇ FORMU ───
+let aracIdx=0;
 function addAracField(data={}) {
-  const i = aracFieldIndex++;
-  const div = document.createElement('div');
-  div.className = 'arac-box';
-  // Marka options
-  const markaOpts = Object.keys(ARAC_DB).map(m=>`<option ${(data.marka||'')==m?'selected':''}>${m}</option>`).join('');
-  // Model options
-  const secilenMarka = data.marka || Object.keys(ARAC_DB)[0];
-  const modelOpts = (ARAC_DB[secilenMarka]||[]).map(m=>`<option ${(data.model||'')==m?'selected':''}>${m}</option>`).join('');
-  // Yıl options
-  const thisYear = new Date().getFullYear();
-  let yilOpts = '';
-  for (let y=thisYear;y>=1985;y--) yilOpts += `<option ${(data.yil||0)==y?'selected':''}>${y}</option>`;
-  yilOpts += `<option ${!data.yil?'selected':''} value="">Belirtilmedi</option>`;
-
-  div.innerHTML = `
-    <div class="arac-box-header">
-      <div class="arac-box-title">Araç ${i+1}</div>
+  const i=aracIdx++;
+  const div=document.createElement('div');
+  div.style.cssText='background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:12px;margin-bottom:10px;';
+  const markaOpts=MARKALAR.map(m=>`<option value="${m}" ${(data.marka||'')==m?'selected':''}>${m}</option>`).join('');
+  let yilOpts='<option value="">— Seçin —</option>';
+  for(let y=new Date().getFullYear();y>=1990;y--) yilOpts+=`<option value="${y}" ${(data.yil||0)==y?'selected':''}>${y}</option>`;
+  div.innerHTML=`
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+      <div style="font-size:12px;color:var(--text3);font-weight:700;text-transform:uppercase;letter-spacing:.5px">Araç ${i+1}</div>
       <button onclick="this.parentElement.parentElement.remove()" style="background:none;border:none;color:var(--red);cursor:pointer;font-size:18px">✕</button>
     </div>
     <div class="form-group">
       <label class="form-label">Plaka *</label>
-      <input class="form-input arac-plaka" placeholder="34ABC123" value="${data.plaka||''}" oninput="this.value=this.value.toUpperCase().replace(/\\s/g,'')" style="text-transform:uppercase;letter-spacing:2px" />
+      <input class="form-input uppercase-live arac-plaka" placeholder="34ABC123" value="${data.plaka||''}" oninput="this.value=this.value.toLocaleUpperCase('tr-TR').replace(/\\s/g,'')" />
     </div>
     <div class="form-row">
       <div class="form-group">
         <label class="form-label">Marka</label>
-        <select class="form-select arac-marka" onchange="updateModelSelect(this)">${markaOpts}</select>
+        <select class="form-select arac-marka" onchange="fillModeller(this)">
+          <option value="">— Seçin —</option>${markaOpts}
+        </select>
       </div>
       <div class="form-group">
         <label class="form-label">Model</label>
-        <select class="form-select arac-model">${modelOpts}</select>
+        <select class="form-select arac-model">
+          <option value="${data.model||''}">${data.model||'— Önce marka —'}</option>
+        </select>
       </div>
     </div>
     <div class="form-row">
       <div class="form-group">
         <label class="form-label">Yıl</label>
-        <select class="form-select arac-yil"><option value="">Belirtilmedi</option>${(() => { let s=''; for(let y=new Date().getFullYear();y>=1985;y--) s+=`<option ${(data.yil||0)==y?'selected':''}>${y}</option>`; return s; })()}</select>
+        <select class="form-select arac-yil">${yilOpts}</select>
       </div>
       <div class="form-group">
         <label class="form-label">Yakıt</label>
         <select class="form-select arac-yakit">
-          ${['Benzin','Dizel','LPG','Hibrit','Elektrik','Belirtilmedi'].map(y=>`<option ${(data.yakit||'Belirtilmedi')==y?'selected':''}>${y}</option>`).join('')}
+          ${['Benzin','Dizel','LPG','Hibrit','Elektrik','Belirtilmedi'].map(y=>`<option ${(data.yakit||'Belirtilmedi')===y?'selected':''}>${y}</option>`).join('')}
         </select>
       </div>
     </div>`;
   document.getElementById('arac-list-form').appendChild(div);
+  if(data.marka && ARAC_DB[data.marka]) {
+    fillModeller(div.querySelector('.arac-marka'), data.model);
+  }
 }
 
-function updateModelSelect(markaEl) {
-  const marka = markaEl.value;
-  const modelSel = markaEl.closest('.arac-box').querySelector('.arac-model');
-  modelSel.innerHTML = (ARAC_DB[marka]||['Diğer']).map(m=>`<option>${m}</option>`).join('');
+function fillModeller(markaEl, selectedModel='') {
+  const row=markaEl.closest('div[style]');
+  const modelEl=row?.querySelector('.arac-model');
+  if(!modelEl) return;
+  const modeller=ARAC_DB[markaEl.value]||[];
+  modelEl.innerHTML=`<option value="">— Seçin —</option>`+modeller.map(m=>`<option ${m===selectedModel?'selected':''}>${m}</option>`).join('');
+}
+
+function openMusteriModal() {
+  clearMusteriForm();
+  document.getElementById('musteri-modal-title').textContent='Yeni Müşteri';
+  document.getElementById('m-id').value='';
+  openModal('overlay-musteri');
+}
+
+async function editMusteri(id) {
+  const m=await dbGet('musteriler',id);
+  if(!m) return;
+  clearMusteriForm();
+  document.getElementById('musteri-modal-title').textContent='Müşteri Düzenle';
+  document.getElementById('m-id').value=m.id;
+  document.getElementById('m-ad').value=m.ad||'';
+  document.getElementById('m-soyad').value=m.soyad||'';
+  document.getElementById('m-telefon').value=m.telefon||'';
+  document.getElementById('m-email').value=m.email||'';
+  document.getElementById('m-adres').value=m.adres||'';
+  (m.araclar||[]).forEach(a=>addAracField(a));
+  openModal('overlay-musteri');
 }
 
 function clearMusteriForm() {
   ['m-ad','m-soyad','m-telefon','m-email','m-adres'].forEach(id=>document.getElementById(id).value='');
-  document.getElementById('arac-list-form').innerHTML = '';
-  aracFieldIndex = 0;
+  document.getElementById('arac-list-form').innerHTML='';
+  aracIdx=0;
 }
 
 async function saveMusteriForm() {
-  const ad = document.getElementById('m-ad').value.trim().toUpperCase();
-  const soyad = document.getElementById('m-soyad').value.trim().toUpperCase();
-  const telefon = document.getElementById('m-telefon').value.trim();
-  if (!ad||!soyad||!telefon) return showToast('Ad, soyad ve telefon zorunludur!','error');
-
-  const araclar = [];
-  document.querySelectorAll('#arac-list-form .arac-box').forEach(div => {
-    const plaka = div.querySelector('.arac-plaka')?.value.trim().toUpperCase().replace(/\s/g,'');
-    if (!plaka) return;
-    araclar.push({
-      plaka,
-      marka: div.querySelector('.arac-marka')?.value||'',
-      model: div.querySelector('.arac-model')?.value||'',
-      yil: parseInt(div.querySelector('.arac-yil')?.value)||0,
-      yakit: div.querySelector('.arac-yakit')?.value||'Belirtilmedi',
-    });
+  const ad=document.getElementById('m-ad').value.trim().toLocaleUpperCase('tr-TR');
+  const soyad=document.getElementById('m-soyad').value.trim().toLocaleUpperCase('tr-TR');
+  const telefon=document.getElementById('m-telefon').value.trim();
+  if(!ad||!soyad||!telefon) return showToast('Ad, soyad ve telefon zorunludur!','error');
+  const araclar=[];
+  document.querySelectorAll('#arac-list-form > div').forEach(div=>{
+    const plaka=div.querySelector('.arac-plaka')?.value.trim().toLocaleUpperCase('tr-TR').replace(/\s/g,'');
+    if(!plaka) return;
+    araclar.push({plaka,marka:div.querySelector('.arac-marka')?.value||'',model:div.querySelector('.arac-model')?.value||'',yil:parseInt(div.querySelector('.arac-yil')?.value)||0,yakit:div.querySelector('.arac-yakit')?.value||'Belirtilmedi'});
   });
-  if (!araclar.length) return showToast('En az bir araç ekleyin!','error');
-
-  const existingId = document.getElementById('m-id').value;
-  let kayit_tarihi = new Date().toISOString();
-  if (existingId) {
-    const ex = await dbGet('musteriler', existingId);
-    kayit_tarihi = ex?.kayit_tarihi || kayit_tarihi;
-  }
-  const musteri = {
-    id: existingId||genId('M'),
-    ad, soyad, telefon,
-    email: document.getElementById('m-email').value.trim(),
-    adres: document.getElementById('m-adres').value.trim(),
-    araclar,
-    plaka: araclar[0].plaka,
-    arac_marka: araclar[0].marka,
-    arac_model: araclar[0].model,
-    arac_yil: araclar[0].yil,
-    kayit_tarihi,
-    guncellenme_tarihi: new Date().toISOString(),
-  };
-  await dbPut('musteriler', musteri);
+  if(araclar.length===0) return showToast('En az bir araç bilgisi gerekli!','error');
+  const eid=document.getElementById('m-id').value;
+  let kayit_tarihi=new Date().toISOString();
+  if(eid){const ex=await dbGet('musteriler',eid);kayit_tarihi=ex?.kayit_tarihi||kayit_tarihi;}
+  await dbPut('musteriler',{id:eid||genId('M'),ad,soyad,telefon,email:document.getElementById('m-email').value.trim(),adres:document.getElementById('m-adres').value.trim(),araclar,plaka:araclar[0].plaka,arac_marka:araclar[0].marka,arac_model:araclar[0].model,arac_yil:araclar[0].yil,kayit_tarihi,guncellenme_tarihi:new Date().toISOString()});
   closeModal('overlay-musteri');
   renderMusteriler();
-  showToast(existingId?'Müşteri güncellendi ✓':'Müşteri eklendi ✓','success');
+  showToast(eid?'Müşteri güncellendi ✓':'Müşteri eklendi ✓','success');
 }
 
 async function deleteMusteri(id) {
-  if (!confirm('Bu müşteriyi silmek istediğinizden emin misiniz?')) return;
+  if(!confirm('Bu müşteriyi silmek istediğinizden emin misiniz?')) return;
   await dbDelete('musteriler',id);
   renderMusteriler();
   showToast('Müşteri silindi','success');
 }
 
 async function showMusteriDetail(id) {
-  const m = await dbGet('musteriler',id);
-  if (!m) return;
-  const bakimlar = await dbGetByIndex('bakimlar','musteri_id',id);
-  const toplam = bakimlar.reduce((s,b)=>s+(b.toplam_ucret||0),0);
-  const html = `
+  const m=await dbGet('musteriler',id);
+  if(!m) return;
+  const bakimlar=await dbIdx('bakimlar','musteri_id',id);
+  const toplam=bakimlar.reduce((s,b)=>s+(b.toplam_ucret||0),0);
+  document.getElementById('detail-modal-content').innerHTML=`
     <div class="modal-handle"></div>
-    <div class="detail-header">
-      <div class="detail-title">${m.ad} ${m.soyad}</div>
-      <div class="detail-sub">📞 ${m.telefon}${m.email?' · '+m.email:''}</div>
-    </div>
+    <div class="detail-header"><div class="detail-title">${m.ad} ${m.soyad}</div><div class="detail-sub">📞 ${m.telefon}${m.email?' · '+m.email:''}</div></div>
     <div class="detail-section">
       <div class="detail-section-title">Araçlar</div>
-      ${(m.araclar||[]).map(a=>`<div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 12px;margin-bottom:8px">
-        <div style="font-weight:700;font-family:'Syne',sans-serif;letter-spacing:2px">${a.plaka}</div>
-        <div style="font-size:12px;color:var(--text2)">${a.marka} ${a.model}${a.yil?' · '+a.yil:''} · ${a.yakit||''}</div>
-      </div>`).join('')}
+      ${(m.araclar||[]).map(a=>`<div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 12px;margin-bottom:8px"><div style="font-weight:700;font-family:'Syne',sans-serif">${a.plaka}</div><div style="font-size:12px;color:var(--text2)">${a.marka} ${a.model}${a.yil?' · '+a.yil:''} · ${a.yakit||''}</div></div>`).join('')}
     </div>
     <div class="detail-section">
       <div class="detail-section-title">İstatistikler</div>
@@ -826,41 +805,29 @@ async function showMusteriDetail(id) {
     </div>
     <div class="detail-section">
       <div class="detail-section-title">Son Bakımlar</div>
-      ${bakimlar.sort((a,b)=>new Date(b.tarih)-new Date(a.tarih)).slice(0,4).map(b=>`
-        <div style="border-bottom:1px solid var(--border);padding:10px 0;display:flex;justify-content:space-between;align-items:center">
-          <div>
-            <div style="font-weight:500;font-size:13px">${b.bakim_turu}</div>
-            <div style="font-size:11px;color:var(--text2)">${formatDate(b.tarih)}${b.km?' · '+b.km.toLocaleString()+' km':''}</div>
-          </div>
-          <div style="color:var(--accent);font-weight:700">${formatMoney(b.toplam_ucret)}</div>
-        </div>`).join('')||'<div class="card-sub" style="padding:10px 0">Bakım kaydı yok</div>'}
+      ${bakimlar.sort((a,b)=>new Date(b.tarih)-new Date(a.tarih)).slice(0,3).map(b=>`<div style="border-bottom:1px solid var(--border);padding:10px 0"><div style="display:flex;justify-content:space-between"><div style="font-weight:500">${b.bakim_turu}</div><div style="color:var(--accent);font-weight:700">${formatMoney(b.toplam_ucret)}</div></div><div style="font-size:12px;color:var(--text2)">${formatDate(b.tarih)}${b.plaka?' · '+b.plaka:''}</div></div>`).join('')||'<div class="card-sub">Bakım kaydı yok</div>'}
     </div>
     <div class="modal-footer">
       <button class="btn btn-secondary" style="flex:1" onclick="closeModal('overlay-detail')">Kapat</button>
-      <button class="btn btn-primary" style="flex:1" onclick="closeModal('overlay-detail');openBakimModalForMusteri('${m.id}')">＋ Bakım</button>
+      <button class="btn btn-primary" style="flex:1" onclick="closeModal('overlay-detail');openBakimModalForMusteri('${m.id}')">＋ Bakım Ekle</button>
     </div>`;
-  document.getElementById('detail-modal-content').innerHTML = html;
   openModal('overlay-detail');
 }
 
 // ════════════════════════════════════════════
-//  BAKIMLAR
+//  BAKIM
 // ════════════════════════════════════════════
-let allBakimlar = [], bakimFilter = 'tumu';
-let tempPhotos = [];
-let seciliIslemler = []; // {id, ad, icon, ucret}
-let aktifBakimKategori = 'tumu';
+let bakimFilter='tumu';
+let tempPhotos=[];
+let seciliKalemler={};
 
 async function renderBakimlar() {
-  allBakimlar = await dbGet('bakimlar');
-  const musteriler = await dbGet('musteriler');
-  const mustMap = {}; musteriler.forEach(m=>mustMap[m.id]=m);
-  let list = [...allBakimlar].sort((a,b)=>new Date(b.tarih)-new Date(a.tarih));
-  if (bakimFilter!=='tumu') list = list.filter(b=>b.bakim_turu?.toLowerCase().includes(bakimFilter)||b.islemler?.some(i=>i.ad?.toLowerCase().includes(bakimFilter)));
-  document.getElementById('bakim-count').textContent = `${list.length} kayıt`;
-  const el = document.getElementById('bakim-list');
-  if (!list.length) { el.innerHTML=`<div class="empty-state"><div class="emoji">🔧</div><h3>Kayıt bulunamadı</h3></div>`; return; }
-  el.innerHTML = list.map(b=>cardBakim(b,mustMap[b.musteri_id])).join('');
+  const [bakimlar,musteriler]=await Promise.all([dbGet('bakimlar'),dbGet('musteriler')]);
+  const mm=Object.fromEntries(musteriler.map(m=>[m.id,m]));
+  let list=[...bakimlar].sort((a,b)=>new Date(b.tarih)-new Date(a.tarih));
+  if(bakimFilter!=='tumu') list=list.filter(b=>(b.bakim_turu||'').toLocaleLowerCase('tr-TR').includes(bakimFilter));
+  document.getElementById('bakim-count').textContent=`${list.length} kayıt`;
+  document.getElementById('bakim-list').innerHTML=list.length===0?`<div class="empty-state"><div class="emoji">🔧</div><h3>Kayıt bulunamadı</h3></div>`:list.map(b=>cardBakim(b,mm[b.musteri_id])).join('');
 }
 
 function filterBakim(f,el) {
@@ -871,531 +838,394 @@ function filterBakim(f,el) {
 }
 
 function cardBakim(b,m) {
-  const mAdi = m?`${m.ad} ${m.soyad}`:'Bilinmiyor';
-  const islemler = (b.islemler||[]).slice(0,3).map(i=>`<span class="arac-chip">${i.icon||'🔧'} ${i.ad}</span>`).join('');
   return `<div class="card" onclick="showBakimDetail('${b.id}')">
     <div class="card-header">
-      <div>
-        <div class="card-title">${b.bakim_turu||'Bakım'}</div>
-        <div class="card-sub">👤 ${mAdi}${b.plaka?' · 🚗 '+b.plaka:''}</div>
-      </div>
-      <div style="text-align:right">
-        <div style="font-family:'Syne',sans-serif;font-weight:800;color:var(--accent);font-size:16px">${formatMoney(b.toplam_ucret)}</div>
-        <div class="card-sub">${formatDate(b.tarih)}</div>
-      </div>
+      <div><div class="card-title">${b.bakim_turu||'Bakım'}</div><div class="card-sub">👤 ${m?m.ad+' '+m.soyad:'Bilinmiyor'}${b.plaka?' · 🚗 '+b.plaka:''}</div></div>
+      <div style="text-align:right"><div style="font-family:'Syne',sans-serif;font-weight:800;color:var(--accent);font-size:16px">${formatMoney(b.toplam_ucret)}</div><div class="card-sub">${formatDate(b.tarih)}</div></div>
     </div>
-    ${islemler?`<div style="margin-bottom:8px">${islemler}</div>`:''}
-    ${b.km?`<div style="font-size:12px;color:var(--text2)">🛣️ ${b.km.toLocaleString()} km</div>`:''}
+    ${b.km?`<div style="font-size:12px;color:var(--text2)">🛣️ ${b.km.toLocaleString('tr-TR')} km</div>`:''}
     <div class="card-actions">
       <button class="btn btn-secondary btn-sm" onclick="event.stopPropagation();editBakim('${b.id}')">✏️</button>
-      <button class="btn btn-green btn-sm" onclick="event.stopPropagation();whatsappPDF('${b.id}')">📲 WA</button>
       <button class="btn btn-danger btn-sm" onclick="event.stopPropagation();deleteBakim('${b.id}')">🗑️</button>
     </div>
   </div>`;
 }
 
-// Bakım Modal açma
-async function openBakimModal(prefillMusteriId=null) {
-  clearBakimForm();
-  document.getElementById('bakim-modal-title').textContent = 'Yeni Bakım Kaydı';
-  document.getElementById('b-id').value = '';
-  const musteriler = await dbGet('musteriler');
-  const sel = document.getElementById('b-musteri');
-  sel.innerHTML = '<option value="">— Müşteri seçin —</option>' +
-    musteriler.map(m=>`<option value="${m.id}" ${m.id===prefillMusteriId?'selected':''}>${m.ad} ${m.soyad} (${m.plaka||''})</option>`).join('');
-  if (prefillMusteriId) { sel.value=prefillMusteriId; await onMusteriSelect(); }
-  renderBakimSecenekleri('tumu');
-  openModal('overlay-bakim');
-}
-
-function openBakimModalForMusteri(id) {
-  closeModal('overlay-detail');
-  setTimeout(()=>openBakimModal(id),200);
-}
-
-async function onMusteriSelect() {
-  const mid = document.getElementById('b-musteri').value;
-  const grp = document.getElementById('arac-secim-group');
-  const info = document.getElementById('secilen-arac-info');
-  if (!mid) { grp.style.display='none'; info.style.display='none'; return; }
-  const m = await dbGet('musteriler',mid);
-  const araclar = m?.araclar||[];
-  if (araclar.length===0) { grp.style.display='none'; info.style.display='none'; return; }
-  document.getElementById('b-arac-plaka').innerHTML = araclar.map(a=>`<option value="${a.plaka}">${a.plaka} — ${a.marka} ${a.model}${a.yil?' ('+a.yil+')':''}</option>`).join('');
-  grp.style.display = araclar.length>1 ? '' : 'none';
-  onAracSelect();
-}
-
-async function onAracSelect() {
-  const mid = document.getElementById('b-musteri').value;
-  const plaka = document.getElementById('b-arac-plaka').value;
-  const info = document.getElementById('secilen-arac-info');
-  if (!mid||!plaka) { info.style.display='none'; return; }
-  const m = await dbGet('musteriler',mid);
-  const arac = (m?.araclar||[]).find(a=>a.plaka===plaka);
-  if (!arac) { info.style.display='none'; return; }
-  info.style.display = '';
-  info.innerHTML = `<div style="background:rgba(249,115,22,.08);border:1px solid rgba(249,115,22,.3);border-radius:var(--radius-sm);padding:10px 14px;font-size:13px">
-    🚗 <strong>${arac.plaka}</strong> — ${arac.marka} ${arac.model}${arac.yil?' · '+arac.yil:''}${arac.yakit?' · '+arac.yakit:''}
-  </div>`;
-}
-
-// Bakım seçenekleri grid
-function renderBakimSecenekleri(kategori) {
-  aktifBakimKategori = kategori;
-  const items = kategori==='tumu' ? BAKIM_SECENEKLERI : BAKIM_SECENEKLERI.filter(b=>b.kat===kategori);
-  document.getElementById('bakim-secenekleri-grid').innerHTML = items.map(item => {
-    const secili = seciliIslemler.some(s=>s.id===item.id);
-    return `<div class="bakim-item ${secili?'selected':''}" onclick="toggleBakimItem('${item.id}')" id="bi-${item.id}">
-      <div class="bakim-item-icon">${item.icon}</div>
-      <div><div class="bakim-item-name">${item.ad}</div></div>
-    </div>`;
-  }).join('');
-}
-
-function filterBakimKategori(kat,el) {
-  document.querySelectorAll('#bakim-kategori-tabs .tab').forEach(t=>t.classList.remove('active'));
-  el.classList.add('active');
-  renderBakimSecenekleri(kat);
-}
-
-function toggleBakimItem(id) {
-  const item = BAKIM_SECENEKLERI.find(b=>b.id===id);
-  if (!item) return;
-  const idx = seciliIslemler.findIndex(s=>s.id===id);
-  if (idx>=0) {
-    seciliIslemler.splice(idx,1);
-  } else {
-    seciliIslemler.push({...item, ucret:0});
-  }
-  renderBakimSecenekleri(aktifBakimKategori);
-  renderSeciliIslemler();
-  updateToplam();
-}
-
-function addOzelIslem() {
-  const id = 'ozel-'+Date.now();
-  seciliIslemler.push({id, ad:'', icon:'🔧', ucret:0, ozel:true});
-  renderSeciliIslemler();
-  // Focus on new item name input
-  setTimeout(()=>{
-    const inputs = document.querySelectorAll('.secili-item-name-input');
-    if (inputs.length) inputs[inputs.length-1].focus();
-  },100);
-}
-
-function renderSeciliIslemler() {
-  const wrap = document.getElementById('secili-islemler-wrap');
-  const list = document.getElementById('secili-islemler-list');
-  if (!seciliIslemler.length) { wrap.style.display='none'; return; }
-  wrap.style.display = '';
-  list.innerHTML = seciliIslemler.map((s,i)=>`
-    <div class="secili-item">
-      <div style="font-size:18px">${s.icon}</div>
-      ${s.ozel
-        ? `<input class="form-input secili-item-name-input" placeholder="İşlem/Parça adı" value="${s.ad}" oninput="seciliIslemler[${i}].ad=this.value" style="flex:1;padding:8px 10px" />`
-        : `<div class="secili-item-name">${s.ad}</div>`}
-      <input class="form-input secili-ucret" type="number" placeholder="₺" value="${s.ucret||''}" 
-             oninput="seciliIslemler[${i}].ucret=parseFloat(this.value)||0;updateToplam()" style="padding:8px 10px" />
-      <button class="remove-btn" onclick="removeIslem(${i})">✕</button>
+// ─── KALEm GRID ───
+function buildKalemGrid() {
+  document.getElementById('kalem-grid').innerHTML=BAKIM_KALEMLERI.map(k=>`
+    <div class="kalem-item ${seciliKalemler[k.id]?'selected':''}" id="ki-${k.id}" onclick="toggleKalem('${k.id}','${k.ad}','${k.tur}')">
+      <div class="kalem-icon">${k.icon}</div>
+      <div class="kalem-name">${k.ad}</div>
+      <div class="kalem-check"></div>
     </div>`).join('');
+  renderSeciliKalemler();
+}
+
+function toggleKalem(id,ad,tur) {
+  if(seciliKalemler[id]){delete seciliKalemler[id];document.getElementById('ki-'+id)?.classList.remove('selected');}
+  else{seciliKalemler[id]={ad,tur,ucret:0};document.getElementById('ki-'+id)?.classList.add('selected');}
+  renderSeciliKalemler();
   updateToplam();
 }
 
-function removeIslem(i) {
-  const removed = seciliIslemler[i];
-  seciliIslemler.splice(i,1);
-  // Seçim gridini de güncelle
-  const gridItem = document.getElementById('bi-'+removed.id);
-  if (gridItem) gridItem.classList.remove('selected');
-  renderSeciliIslemler();
+function addCustomKalem() {
+  const ad=document.getElementById('custom-kalem-ad').value.trim();
+  if(!ad) return;
+  const id='c_'+Date.now();
+  seciliKalemler[id]={ad,tur:'Özel',ucret:0};
+  document.getElementById('custom-kalem-ad').value='';
+  renderSeciliKalemler();
+  updateToplam();
+  setTimeout(()=>document.getElementById('ku-'+id)?.focus(),100);
+}
+
+function renderSeciliKalemler() {
+  const entries=Object.entries(seciliKalemler);
+  const el=document.getElementById('secili-kalemler');
+  if(!entries.length){el.innerHTML=`<div style="color:var(--text3);font-size:13px;text-align:center;padding:10px">Yukarıdan kalem seçin</div>`;return;}
+  el.innerHTML=entries.map(([id,k])=>`
+    <div class="secili-kalem">
+      <div class="secili-kalem-ad">${k.ad}</div>
+      <input class="form-input ucret-input" id="ku-${id}" type="number" placeholder="₺" value="${k.ucret||''}" oninput="seciliKalemler['${id}'].ucret=parseFloat(this.value)||0;updateToplam()" />
+      <button class="remove-btn" onclick="removeKalem('${id}')">✕</button>
+    </div>`).join('');
+}
+
+function removeKalem(id) {
+  delete seciliKalemler[id];
+  document.getElementById('ki-'+id)?.classList.remove('selected');
+  renderSeciliKalemler();
   updateToplam();
 }
 
 function updateToplam() {
-  let toplam = parseFloat(document.getElementById('b-iscilik').value)||0;
-  seciliIslemler.forEach(s=>{ toplam += parseFloat(s.ucret)||0; });
-  document.getElementById('toplam-goster').textContent = formatMoney(toplam);
+  let t=parseFloat(document.getElementById('b-iscilik')?.value)||0;
+  Object.values(seciliKalemler).forEach(k=>t+=(k.ucret||0));
+  document.getElementById('toplam-goster').textContent=formatMoney(t);
+}
+
+// ─── BAKIM MODAL ───
+async function openBakimModal(prefillId=null) {
+  clearBakimForm();
+  const musteriler=await dbGet('musteriler');
+  const sel=document.getElementById('b-musteri');
+  sel.innerHTML='<option value="">— Müşteri seçin —</option>'+musteriler.map(m=>`<option value="${m.id}" ${m.id===prefillId?'selected':''}>${m.ad} ${m.soyad} (${m.plaka||''})</option>`).join('');
+  if(prefillId){sel.value=prefillId;await onMusteriSelect();}
+  buildKalemGrid();
+  openModal('overlay-bakim');
+}
+
+function openBakimModalForMusteri(id){closeModal('overlay-detail');setTimeout(()=>openBakimModal(id),200);}
+
+async function onMusteriSelect() {
+  const mid=document.getElementById('b-musteri').value;
+  const grp=document.getElementById('arac-secim-group');
+  if(!mid){grp.style.display='none';return;}
+  const m=await dbGet('musteriler',mid);
+  const araclar=m?.araclar||[];
+  const plEl=document.getElementById('b-arac-plaka');
+  plEl.innerHTML=araclar.map(a=>`<option value="${a.plaka}">${a.plaka} — ${a.marka} ${a.model}${a.yil?' ('+a.yil+')':''}</option>`).join('');
+  grp.style.display=araclar.length>1?'':'none';
 }
 
 function clearBakimForm() {
   document.getElementById('b-id').value='';
-  document.getElementById('b-musteri').value='';
   document.getElementById('b-km').value='';
   document.getElementById('b-sonraki-km').value='';
   document.getElementById('b-iscilik').value='0';
   document.getElementById('b-notlar').value='';
-  document.getElementById('toplam-goster').textContent='0 ₺';
   document.getElementById('arac-secim-group').style.display='none';
-  document.getElementById('secilen-arac-info').style.display='none';
-  document.getElementById('secili-islemler-wrap').style.display='none';
-  document.getElementById('secili-islemler-list').innerHTML='';
-  seciliIslemler = [];
-  aktifBakimKategori = 'tumu';
-  tempPhotos = [];
-  resetPhotoGrid();
-}
-
-function resetPhotoGrid() {
+  document.getElementById('toplam-goster').textContent='0 ₺';
+  document.getElementById('bakim-modal-title').textContent='Yeni Bakım Kaydı';
+  seciliKalemler={};
+  tempPhotos=[];
   document.getElementById('photo-grid').innerHTML=`<div class="photo-add" onclick="document.getElementById('file-input').click()">＋</div>`;
 }
 
 async function editBakim(id) {
-  const b = await dbGet('bakimlar',id);
-  if (!b) return;
+  const b=await dbGet('bakimlar',id);
+  if(!b) return;
   await openBakimModal(b.musteri_id);
-  document.getElementById('bakim-modal-title').textContent = 'Bakım Düzenle';
-  document.getElementById('b-id').value = b.id;
-  document.getElementById('b-km').value = b.km||'';
-  document.getElementById('b-sonraki-km').value = b.sonraki_bakim_km||'';
-  document.getElementById('b-iscilik').value = b.iscilik_ucreti||0;
-  document.getElementById('b-notlar').value = b.notlar||'';
-  // Araç
-  if (b.plaka) { document.getElementById('b-arac-plaka').value=b.plaka; onAracSelect(); }
-  // İşlemler
-  seciliIslemler = (b.islemler||[]).map(i=>({...i}));
-  renderBakimSecenekleri(aktifBakimKategori);
-  renderSeciliIslemler();
+  document.getElementById('bakim-modal-title').textContent='Bakım Düzenle';
+  document.getElementById('b-id').value=b.id;
+  document.getElementById('b-km').value=b.km||'';
+  document.getElementById('b-sonraki-km').value=b.sonraki_bakim_km||'';
+  document.getElementById('b-iscilik').value=b.iscilik_ucreti||0;
+  document.getElementById('b-notlar').value=b.notlar||'';
+  if(b.plaka) document.getElementById('b-arac-plaka').value=b.plaka;
+  seciliKalemler={};
+  (b.kalemler||[]).forEach(k=>{seciliKalemler[k.id||(('c_'+k.ad))]={ad:k.ad,tur:k.tur||'',ucret:k.ucret};});
+  buildKalemGrid();
   updateToplam();
-  // Medya
-  const medyalar = await dbGetByIndex('medya','bakim_id',id);
-  medyalar.forEach(med=>{ tempPhotos.push({dataUrl:med.dataUrl,type:med.type,id:med.id}); addPhotoThumb(med.dataUrl); });
+  const medyalar=await dbIdx('medya','bakim_id',id);
+  medyalar.forEach(med=>{tempPhotos.push({dataUrl:med.dataUrl,type:med.type,id:med.id});addPhotoThumb(med.dataUrl);});
 }
 
 async function saveBakimForm() {
-  const mid = document.getElementById('b-musteri').value;
-  if (!mid) return showToast('Müşteri seçmelisiniz!','error');
-  if (!seciliIslemler.length) return showToast('En az bir bakım işlemi seçin!','error');
-
-  const m = await dbGet('musteriler',mid);
-  const plaka = document.getElementById('b-arac-plaka').value || m?.plaka || '';
-  const arac = (m?.araclar||[]).find(a=>a.plaka===plaka) || (m?.araclar||[])[0] || {};
-
-  const iscilik = parseFloat(document.getElementById('b-iscilik').value)||0;
-  const islemToplam = seciliIslemler.reduce((s,i)=>s+(parseFloat(i.ucret)||0),0);
-  const toplam_ucret = islemToplam + iscilik;
-
-  // Bakım türü — seçili işlemlerin kategori özeti
-  const katSet = [...new Set(seciliIslemler.map(i=>i.kat).filter(Boolean))];
-  const katAdi = {fren:'Fren',yaglama:'Yağlama',motor:'Motor',lastik:'Lastik',diger:'Genel'};
-  const bakim_turu = katSet.length ? katSet.map(k=>katAdi[k]||k).join(' + ') : 'Genel Bakım';
-
-  const existingId = document.getElementById('b-id').value;
-  let tarih = new Date().toISOString();
-  if (existingId) { const ex=await dbGet('bakimlar',existingId); tarih=ex?.tarih||tarih; }
-
-  const bakim = {
-    id: existingId||genId('B'),
-    musteri_id: mid,
-    bakim_turu,
-    islemler: seciliIslemler.map(i=>({id:i.id,ad:i.ad,icon:i.icon||'🔧',ucret:parseFloat(i.ucret)||0,kat:i.kat||'diger'})),
-    // eski uyumluluk için parcalar da doldur
-    parcalar: seciliIslemler.map(i=>({ad:i.ad,ucret:parseFloat(i.ucret)||0})),
-    parca_toplam: islemToplam,
-    iscilik_ucreti: iscilik,
-    toplam_ucret,
-    km: parseInt(document.getElementById('b-km').value)||0,
-    sonraki_bakim_km: parseInt(document.getElementById('b-sonraki-km').value)||0,
-    notlar: document.getElementById('b-notlar').value.trim(),
-    plaka,
-    arac_marka: arac.marka||m?.arac_marka||'',
-    arac_model: arac.model||m?.arac_model||'',
-    arac_yil: arac.yil||m?.arac_yil||0,
-    tarih,
-    guncellenme_tarihi: new Date().toISOString(),
-    durum: 'tamamlandi',
-  };
+  const mid=document.getElementById('b-musteri').value;
+  if(!mid) return showToast('Müşteri seçmelisiniz!','error');
+  const kalemler=Object.entries(seciliKalemler).map(([id,k])=>({id,ad:k.ad,tur:k.tur,ucret:k.ucret||0}));
+  if(!kalemler.length) return showToast('En az bir bakım kalemi seçin!','error');
+  const m=await dbGet('musteriler',mid);
+  const plaka=document.getElementById('b-arac-plaka').value||m?.plaka||'';
+  const arac=(m?.araclar||[]).find(a=>a.plaka===plaka)||m?.araclar?.[0]||{};
+  const iscilik=parseFloat(document.getElementById('b-iscilik').value)||0;
+  const ptoplam=kalemler.reduce((s,k)=>s+k.ucret,0);
+  const toplam=ptoplam+iscilik;
+  const turler=[...new Set(kalemler.map(k=>k.tur).filter(Boolean))];
+  const bakim_turu=turler.join(', ')||'Genel Bakım';
+  const eid=document.getElementById('b-id').value;
+  let tarih=new Date().toISOString();
+  if(eid){const ex=await dbGet('bakimlar',eid);tarih=ex?.tarih||tarih;}
+  const bakim={id:eid||genId('B'),musteri_id:mid,bakim_turu,kalemler,parcalar:kalemler.map(k=>({ad:k.ad,ucret:k.ucret})),parca_toplam:ptoplam,iscilik_ucreti:iscilik,toplam_ucret:toplam,km:parseInt(document.getElementById('b-km').value)||0,sonraki_bakim_km:parseInt(document.getElementById('b-sonraki-km').value)||0,notlar:document.getElementById('b-notlar').value.trim(),plaka,arac_marka:arac.marka||m?.arac_marka||'',arac_model:arac.model||m?.arac_model||'',arac_yil:arac.yil||m?.arac_yil||0,arac_yakit:arac.yakit||'',tarih,guncellenme_tarihi:new Date().toISOString(),durum:'tamamlandi'};
   await dbPut('bakimlar',bakim);
-
-  // Medya kaydet
-  for (const foto of tempPhotos) {
-    if (!foto.id) await dbPut('medya',{bakim_id:bakim.id,dataUrl:foto.dataUrl,type:foto.type,tarih:new Date().toISOString()});
-  }
+  for(const f of tempPhotos) if(!f.id) await dbPut('medya',{bakim_id:bakim.id,dataUrl:f.dataUrl,type:f.type,tarih:new Date().toISOString()});
   closeModal('overlay-bakim');
   renderBakimlar();
-  if (currentPage==='dashboard') renderDashboard();
-  showToast(existingId?'Bakım güncellendi ✓':'Bakım kaydedildi ✓','success');
+  if(currentPage==='dashboard') renderDashboard();
+  showToast(eid?'Bakım güncellendi ✓':'Bakım kaydedildi ✓','success');
 }
 
 async function deleteBakim(id) {
-  if (!confirm('Bu bakım kaydını silmek istediğinizden emin misiniz?')) return;
+  if(!confirm('Bu bakım kaydını silmek istediğinizden emin misiniz?')) return;
   await dbDelete('bakimlar',id);
-  const medyalar = await dbGetByIndex('medya','bakim_id',id);
-  for (const med of medyalar) await dbDelete('medya',med.id);
+  const med=await dbIdx('medya','bakim_id',id);
+  for(const x of med) await dbDelete('medya',x.id);
   renderBakimlar();
   showToast('Bakım silindi','success');
 }
 
 async function showBakimDetail(id) {
-  const b = await dbGet('bakimlar',id);
-  if (!b) return;
-  const m = await dbGet('musteriler',b.musteri_id);
-  const medyalar = await dbGetByIndex('medya','bakim_id',id);
-  const html = `
+  const b=await dbGet('bakimlar',id);
+  if(!b) return;
+  const m=await dbGet('musteriler',b.musteri_id);
+  const medyalar=await dbIdx('medya','bakim_id',id);
+  const tel=(m?.telefon||'').replace(/\D/g,'');
+  const waNumber=tel?'90'+tel.replace(/^0/,''):'';
+
+  document.getElementById('detail-modal-content').innerHTML=`
     <div class="modal-handle"></div>
-    <div class="detail-header">
-      <div class="detail-title">${b.bakim_turu||'Bakım'}</div>
-      <div class="detail-sub">📅 ${formatDate(b.tarih)}${b.plaka?' · 🚗 '+b.plaka:''}</div>
-    </div>
+    <div class="detail-header"><div class="detail-title">${b.bakim_turu}</div><div class="detail-sub">📅 ${formatDate(b.tarih)}</div></div>
     <div class="detail-section">
       <div class="detail-section-title">Müşteri & Araç</div>
       <div class="detail-row"><div class="detail-key">Müşteri</div><div class="detail-val">${m?m.ad+' '+m.soyad:'Bilinmiyor'}</div></div>
-      <div class="detail-row"><div class="detail-key">Plaka</div><div class="detail-val" style="letter-spacing:2px;font-weight:700">${b.plaka||'-'}</div></div>
+      <div class="detail-row"><div class="detail-key">Telefon</div><div class="detail-val">${m?.telefon||'-'}</div></div>
+      <div class="detail-row"><div class="detail-key">Plaka</div><div class="detail-val">${b.plaka||'-'}</div></div>
       <div class="detail-row"><div class="detail-key">Araç</div><div class="detail-val">${b.arac_marka} ${b.arac_model}${b.arac_yil?' ('+b.arac_yil+')':''}</div></div>
-      ${b.km?`<div class="detail-row"><div class="detail-key">Kilometre</div><div class="detail-val">${b.km.toLocaleString()} km</div></div>`:''}
-      ${b.sonraki_bakim_km?`<div class="detail-row"><div class="detail-key">Sonraki Bakım</div><div class="detail-val">${b.sonraki_bakim_km.toLocaleString()} km</div></div>`:''}
+      ${b.km?`<div class="detail-row"><div class="detail-key">Kilometre</div><div class="detail-val">${b.km.toLocaleString('tr-TR')} km</div></div>`:''}
+      ${b.sonraki_bakim_km?`<div class="detail-row"><div class="detail-key">Sonraki Bakım</div><div class="detail-val">${b.sonraki_bakim_km.toLocaleString('tr-TR')} km</div></div>`:''}
     </div>
     <div class="detail-section">
       <div class="detail-section-title">Yapılan İşlemler</div>
-      ${(b.islemler||b.parcalar||[]).map(i=>`
-        <div class="detail-row">
-          <div class="detail-key">${i.icon||'🔧'} ${i.ad}</div>
-          <div class="detail-val" style="color:var(--text)">${formatMoney(i.ucret)}</div>
-        </div>`).join('')}
-      <div style="border-top:1px solid var(--border);margin:8px 0;padding-top:8px">
-        <div class="detail-row"><div class="detail-key">İşçilik</div><div class="detail-val">${formatMoney(b.iscilik_ucreti)}</div></div>
-        <div class="detail-row"><div class="detail-key" style="font-weight:700">TOPLAM</div><div class="price-highlight">${formatMoney(b.toplam_ucret)}</div></div>
-      </div>
+      ${(b.kalemler||b.parcalar||[]).map(k=>`<div class="detail-row"><div class="detail-key">• ${k.ad}</div><div class="detail-val">${formatMoney(k.ucret)}</div></div>`).join('')}
+      <div style="border-top:1px solid var(--border);margin:8px 0 4px"></div>
+      <div class="detail-row"><div class="detail-key">İşçilik</div><div class="detail-val">${formatMoney(b.iscilik_ucreti)}</div></div>
+      <div class="detail-row"><div class="detail-key" style="font-weight:700">TOPLAM</div><div class="price-highlight">${formatMoney(b.toplam_ucret)}</div></div>
     </div>
     ${b.notlar?`<div class="detail-section"><div class="detail-section-title">Notlar</div><div style="font-size:14px;color:var(--text2)">${b.notlar}</div></div>`:''}
-    ${medyalar.length?`<div class="detail-section">
-      <div class="detail-section-title">Fotoğraflar (${medyalar.length})</div>
-      <div class="photo-grid">${medyalar.map(med=>`<img class="photo-thumb" src="${med.dataUrl}" onclick="viewPhoto('${med.dataUrl}')" />`).join('')}</div>
-    </div>`:''}
-    <div class="modal-footer" style="flex-wrap:wrap;gap:8px">
-      <button class="btn btn-secondary" style="flex:1" onclick="closeModal('overlay-detail')">Kapat</button>
-      <button class="btn btn-secondary" style="flex:1" onclick="closeModal('overlay-detail');editBakim('${b.id}')">✏️ Düzenle</button>
-      <button class="btn btn-primary" style="flex:1" onclick="printBakim('${b.id}')">🖨️ Yazdır</button>
-      <button class="btn btn-whatsapp" style="flex:1;width:100%" onclick="whatsappPDF('${b.id}')">📲 WhatsApp ile Gönder</button>
+    ${medyalar.length?`<div class="detail-section"><div class="detail-section-title">Fotoğraflar (${medyalar.length})</div><div class="photo-grid">${medyalar.map(med=>`<img class="photo-thumb" src="${med.dataUrl}" onclick="viewPhoto('${med.dataUrl}')" />`).join('')}</div></div>`:''}
+    <div class="modal-footer" style="flex-direction:column;gap:8px">
+      <div style="display:flex;gap:8px;width:100%">
+        <button class="btn btn-secondary" style="flex:1" onclick="closeModal('overlay-detail')">Kapat</button>
+        <button class="btn btn-secondary" style="flex:1" onclick="closeModal('overlay-detail');editBakim('${b.id}')">✏️ Düzenle</button>
+      </div>
+      <div style="display:flex;gap:8px;width:100%">
+        <button class="btn btn-primary" style="flex:1" onclick="pdfIndir('${b.id}')">📄 PDF İndir</button>
+        <button class="btn btn-green" style="flex:1" onclick="whatsappGonder('${b.id}')" ${waNumber?'':'disabled title="Telefon numarası yok"'}>📲 WhatsApp</button>
+      </div>
     </div>`;
-  document.getElementById('detail-modal-content').innerHTML = html;
   openModal('overlay-detail');
 }
 
 // ════════════════════════════════════════════
-//  FOTOĞRAF
+//  PDF
 // ════════════════════════════════════════════
+async function buildPDF(bakimId) {
+  const b=await dbGet('bakimlar',bakimId);
+  const m=await dbGet('musteriler',b.musteri_id);
+  const {jsPDF}=window.jspdf;
+  const doc=new jsPDF({unit:'mm',format:'a4'});
+  const W=210,H=297;
+  const ORA=[249,115,22],DARK=[15,23,42],GRAY=[100,116,139],LIGHT=[241,245,249],WHITE=[255,255,255];
+  let y=0;
+
+  // Header bg
+  doc.setFillColor(...DARK);doc.rect(0,0,W,48,'F');
+
+  // Logo
+  doc.setFillColor(...ORA);doc.roundedRect(14,10,52,13,3,3,'F');
+  doc.setTextColor(...WHITE);doc.setFont('helvetica','bold');doc.setFontSize(11);
+  doc.text('ARAÇ BAKIM',17,17.5);
+  doc.setFont('helvetica','normal');doc.setFontSize(7.5);
+  doc.text('TAKİP SİSTEMİ',17,22.5);
+
+  // Başlık sağ
+  doc.setFontSize(22);doc.setFont('helvetica','bold');doc.setTextColor(...WHITE);
+  doc.text('BAKIM RAPORU',W-14,18,{align:'right'});
+  doc.setFontSize(9);doc.setFont('helvetica','normal');doc.setTextColor(...ORA);
+  doc.text('Tarih: '+formatDate(b.tarih),W-14,26,{align:'right'});
+  doc.text('No: '+b.id,W-14,32,{align:'right'});
+
+  y=56;
+
+  // Müşteri & Araç yan yana
+  const bw=85;
+  [[14,'MÜŞTERİ BİLGİLERİ',[m?.ad+' '+m?.soyad,'Tel: '+(m?.telefon||'-'),m?.adres?m.adres.slice(0,38):'']],[111,'ARAÇ BİLGİLERİ',[b.plaka||'-',b.arac_marka+' '+b.arac_model+(b.arac_yil?' ('+b.arac_yil+')':''),'KM: '+(b.km?b.km.toLocaleString('tr-TR')+' km':'-'),b.sonraki_bakim_km?'Sonraki: '+b.sonraki_bakim_km.toLocaleString('tr-TR')+' km':'']]].forEach(([x,title,lines])=>{
+    doc.setFillColor(...LIGHT);doc.roundedRect(x,y,bw,36,3,3,'F');
+    doc.setDrawColor(...ORA);doc.setLineWidth(.5);doc.roundedRect(x,y,bw,36,3,3,'S');
+    doc.setFontSize(7.5);doc.setFont('helvetica','bold');doc.setTextColor(...ORA);
+    doc.text(title,x+4,y+7);
+    doc.setFont('helvetica','normal');doc.setFontSize(8.5);doc.setTextColor(...DARK);
+    lines.filter(Boolean).forEach((line,i)=>{
+      if(i===0){doc.setFont('helvetica','bold');doc.setFontSize(10);}
+      else{doc.setFont('helvetica','normal');doc.setFontSize(8.5);doc.setTextColor(...GRAY);}
+      doc.text(line,x+4,y+14+i*7);
+    });
+  });
+  y+=44;
+
+  // Tablo başlığı
+  doc.setFillColor(...ORA);doc.roundedRect(14,y,W-28,9,2,2,'F');
+  doc.setFont('helvetica','bold');doc.setFontSize(9);doc.setTextColor(...WHITE);
+  doc.text('YAPILAN İŞLEM',18,y+6);doc.text('ÜCRET (TL)',W-18,y+6,{align:'right'});
+  y+=11;
+
+  // Kalem satırları
+  const kalemler=b.kalemler||b.parcalar||[];
+  let zebra=false;
+  kalemler.forEach(k=>{
+    doc.setFillColor(zebra?245:255,zebra?247:255,zebra?250:255);
+    doc.rect(14,y,W-28,8,'F');
+    doc.setFont('helvetica','normal');doc.setFontSize(9);doc.setTextColor(...DARK);
+    doc.text('• '+k.ad,18,y+5.5);
+    doc.setFont('helvetica','bold');doc.text((k.ucret||0).toFixed(2),W-18,y+5.5,{align:'right'});
+    y+=8;zebra=!zebra;
+  });
+
+  // İşçilik
+  doc.setFillColor(zebra?245:255,zebra?247:255,zebra?250:255);doc.rect(14,y,W-28,8,'F');
+  doc.setFont('helvetica','normal');doc.setTextColor(...GRAY);doc.text('İşçilik Ücreti',18,y+5.5);
+  doc.setFont('helvetica','bold');doc.setTextColor(...DARK);doc.text((b.iscilik_ucreti||0).toFixed(2),W-18,y+5.5,{align:'right'});
+  y+=11;
+
+  // Toplam
+  doc.setFillColor(...DARK);doc.roundedRect(14,y,W-28,15,3,3,'F');
+  doc.setFont('helvetica','bold');doc.setFontSize(11);doc.setTextColor(...WHITE);
+  doc.text('TOPLAM ÜCRET',18,y+9.5);
+  doc.setFontSize(15);doc.setTextColor(...ORA);
+  doc.text((b.toplam_ucret||0).toFixed(2)+' TL',W-18,y+9.5,{align:'right'});
+  y+=20;
+
+  // Sonraki bakım hatırlatma
+  if(b.sonraki_bakim_km){
+    doc.setFillColor(34,197,94,30);doc.roundedRect(14,y,W-28,12,3,3,'F');
+    doc.setDrawColor(34,197,94);doc.setLineWidth(.5);doc.roundedRect(14,y,W-28,12,3,3,'S');
+    doc.setFont('helvetica','bold');doc.setFontSize(9);doc.setTextColor(21,128,61);
+    doc.text('✓ Sonraki bakım: '+b.sonraki_bakim_km.toLocaleString('tr-TR')+' km',18,y+7.5);
+    y+=17;
+  }
+
+  // Notlar
+  if(b.notlar){
+    doc.setFillColor(...LIGHT);doc.roundedRect(14,y,W-28,20,3,3,'F');
+    doc.setFont('helvetica','bold');doc.setFontSize(8);doc.setTextColor(...GRAY);
+    doc.text('NOTLAR',18,y+7);
+    doc.setFont('helvetica','normal');doc.setTextColor(...DARK);doc.setFontSize(8.5);
+    doc.text(doc.splitTextToSize(b.notlar,W-42).slice(0,2),18,y+13);
+    y+=25;
+  }
+
+  // Footer
+  doc.setFillColor(...DARK);doc.rect(0,H-20,W,20,'F');
+  doc.setFont('helvetica','normal');doc.setFontSize(7.5);doc.setTextColor(...GRAY);
+  doc.text('Bu rapor Araç Bakım Takip Sistemi tarafından otomatik oluşturulmuştur.',W/2,H-13,{align:'center'});
+  doc.setTextColor(...ORA);
+  doc.text('© '+new Date().getFullYear()+' Araç Bakım Takip  |  Tüm hakları saklıdır.',W/2,H-7,{align:'center'});
+
+  return {doc,b,m};
+}
+
+async function pdfIndir(id) {
+  showToast('PDF hazırlanıyor...','success');
+  try{const {doc,b}=await buildPDF(id);doc.save(`bakim_${b.plaka||'rapor'}_${new Date().toISOString().slice(0,10)}.pdf`);showToast('PDF indirildi ✓','success');}
+  catch(e){showToast('PDF hatası: '+e.message,'error');console.error(e);}
+}
+
+async function whatsappGonder(id) {
+  showToast('PDF hazırlanıyor...','success');
+  try {
+    const {doc,b,m}=await buildPDF(id);
+    const pdfBlob=doc.output('blob');
+    const pdfFile=new File([pdfBlob],`bakim_raporu_${b.plaka||'arac'}.pdf`,{type:'application/pdf'});
+    const tel=(m?.telefon||'').replace(/\D/g,'');
+    const waNum='90'+tel.replace(/^0/,'');
+    const mesaj=`Sayın ${m?.ad||''} ${m?.soyad||''}, ${formatDate(b.tarih)} tarihinde gerçekleştirilen ${b.plaka||'aracınız'} bakım raporunuzu ekte bulabilirsiniz. Toplam ücret: ${formatMoney(b.toplam_ucret)}. İyi yolculuklar dileriz! 🔧`;
+
+    if(navigator.canShare && navigator.canShare({files:[pdfFile]})) {
+      await navigator.share({title:'Bakım Raporu',text:mesaj,files:[pdfFile]});
+      showToast('Paylaşıldı ✓','success');
+    } else {
+      // Fallback: PDF indir + WhatsApp aç
+      doc.save(`bakim_${b.plaka||'rapor'}.pdf`);
+      setTimeout(()=>{
+        window.open(`https://wa.me/${waNum}?text=${encodeURIComponent(mesaj)}`, '_blank');
+      }, 800);
+      showToast('PDF indirildi, WhatsApp açılıyor...','success');
+    }
+  } catch(e) {
+    if(e.name==='AbortError') return;
+    showToast('Hata: '+e.message,'error');
+    console.error(e);
+  }
+}
+
+// ─── FOTOĞRAF ───
 function handleFiles(e) {
-  Array.from(e.target.files).forEach(file=>{
-    const reader = new FileReader();
-    reader.onload = ev => { tempPhotos.push({dataUrl:ev.target.result,type:file.type}); addPhotoThumb(ev.target.result); };
-    reader.readAsDataURL(file);
+  Array.from(e.target.files).forEach(f=>{
+    const r=new FileReader();
+    r.onload=ev=>{tempPhotos.push({dataUrl:ev.target.result,type:f.type});addPhotoThumb(ev.target.result);};
+    r.readAsDataURL(f);
   });
   e.target.value='';
 }
 function addPhotoThumb(src) {
-  const grid = document.getElementById('photo-grid');
-  const img = document.createElement('img');
-  img.className='photo-thumb'; img.src=src;
-  img.onclick=()=>viewPhoto(src);
-  grid.insertBefore(img,grid.lastElementChild);
+  const g=document.getElementById('photo-grid');
+  const img=document.createElement('img');
+  img.className='photo-thumb';img.src=src;img.onclick=()=>viewPhoto(src);
+  g.insertBefore(img,g.lastElementChild);
 }
 function viewPhoto(src) {
-  const ov=document.createElement('div');
-  ov.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.95);z-index:9999;display:flex;align-items:center;justify-content:center;';
-  ov.innerHTML=`<img src="${src}" style="max-width:100%;max-height:100%;object-fit:contain"/>`;
-  ov.onclick=()=>ov.remove();
-  document.body.appendChild(ov);
+  const d=document.createElement('div');
+  d.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.95);z-index:999;display:flex;align-items:center;justify-content:center;';
+  d.innerHTML=`<img src="${src}" style="max-width:100%;max-height:100%;object-fit:contain" />`;
+  d.onclick=()=>d.remove();document.body.appendChild(d);
 }
 
 // ════════════════════════════════════════════
-//  PDF OLUŞTURMA
-// ════════════════════════════════════════════
-async function generateBakimPDF(bakimId) {
-  const b = await dbGet('bakimlar', bakimId);
-  const m = await dbGet('musteriler', b.musteri_id);
-  const { jsPDF } = window.jspdf;
-  const doc = new jsPDF({ unit:'mm', format:'a4' });
-
-  const W = 210, pad = 15;
-  let y = pad;
-
-  // Header bg
-  doc.setFillColor(249,115,22);
-  doc.rect(0,0,W,30,'F');
-
-  // Logo / başlık
-  doc.setTextColor(255,255,255);
-  doc.setFontSize(20); doc.setFont('helvetica','bold');
-  doc.text('ARAÇ BAKIM RAPORU', pad, 13);
-  doc.setFontSize(9); doc.setFont('helvetica','normal');
-  doc.text(`Tarih: ${formatDate(b.tarih)}   Rapor No: ${b.id}`, pad, 22);
-  y = 38;
-
-  // Müşteri bilgileri kutusu
-  doc.setFillColor(245,247,250);
-  doc.roundedRect(pad,y,W-pad*2,28,3,3,'F');
-  doc.setTextColor(80,80,80); doc.setFontSize(8); doc.setFont('helvetica','bold');
-  doc.text('MÜŞTERİ BİLGİLERİ',pad+4,y+6);
-  doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.setTextColor(30,30,30);
-  doc.text(`Ad Soyad: ${m?.ad||''} ${m?.soyad||''}`, pad+4, y+12);
-  doc.text(`Telefon: ${m?.telefon||'-'}`, pad+4, y+18);
-  doc.text(`E-posta: ${m?.email||'-'}`, pad+4, y+24);
-  // Araç bilgileri
-  doc.setFont('helvetica','bold'); doc.setFontSize(8); doc.setTextColor(80,80,80);
-  doc.text('ARAÇ BİLGİLERİ', W/2+4, y+6);
-  doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.setTextColor(30,30,30);
-  doc.text(`Plaka: ${b.plaka||'-'}`, W/2+4, y+12);
-  doc.text(`Araç: ${b.arac_marka||''} ${b.arac_model||''}${b.arac_yil?' ('+b.arac_yil+')':''}`, W/2+4, y+18);
-  doc.text(`Kilometre: ${b.km?b.km.toLocaleString()+' km':'-'}`, W/2+4, y+24);
-  y += 34;
-
-  // Sonraki bakım km
-  if (b.sonraki_bakim_km) {
-    doc.setFillColor(255,247,237);
-    doc.roundedRect(pad,y,W-pad*2,10,2,2,'F');
-    doc.setTextColor(249,115,22); doc.setFont('helvetica','bold'); doc.setFontSize(9);
-    doc.text(`⚠  Sonraki Bakım: ${b.sonraki_bakim_km.toLocaleString()} km`, pad+4, y+7);
-    y += 16;
-  }
-
-  // İşlemler tablosu başlık
-  doc.setFillColor(30,40,60);
-  doc.rect(pad,y,W-pad*2,8,'F');
-  doc.setTextColor(255,255,255); doc.setFont('helvetica','bold'); doc.setFontSize(9);
-  doc.text('YAPILAN İŞLEMLER', pad+3, y+5.5);
-  doc.text('ÜCRET (₺)', W-pad-30, y+5.5);
-  y += 10;
-
-  // İşlemler satırları
-  const islemler = b.islemler||b.parcalar||[];
-  islemler.forEach((item,i) => {
-    if (i%2===0) { doc.setFillColor(248,249,252); doc.rect(pad,y-1,W-pad*2,8,'F'); }
-    doc.setTextColor(30,30,30); doc.setFont('helvetica','normal'); doc.setFontSize(9);
-    doc.text(item.ad||'', pad+3, y+5);
-    const ucretStr = (item.ucret||0).toFixed(2);
-    doc.text(ucretStr, W-pad-3, y+5, {align:'right'});
-    y += 8;
-    if (y > 250) { doc.addPage(); y = 20; }
-  });
-
-  // Ayırıcı
-  doc.setDrawColor(220,220,220); doc.line(pad,y,W-pad,y);
-  y += 5;
-
-  // İşçilik
-  doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.setTextColor(80,80,80);
-  doc.text('İşçilik Ücreti', pad+3, y+5);
-  doc.text((b.iscilik_ucreti||0).toFixed(2), W-pad-3, y+5, {align:'right'});
-  y += 10;
-
-  // Toplam kutusu
-  doc.setFillColor(249,115,22);
-  doc.roundedRect(pad,y,W-pad*2,12,2,2,'F');
-  doc.setTextColor(255,255,255); doc.setFont('helvetica','bold'); doc.setFontSize(12);
-  doc.text('TOPLAM', pad+4, y+8.5);
-  doc.text(`${(b.toplam_ucret||0).toFixed(2)} TL`, W-pad-3, y+8.5, {align:'right'});
-  y += 18;
-
-  // Notlar
-  if (b.notlar) {
-    doc.setFillColor(245,247,250);
-    doc.roundedRect(pad,y,W-pad*2,16,2,2,'F');
-    doc.setTextColor(80,80,80); doc.setFont('helvetica','bold'); doc.setFontSize(8);
-    doc.text('NOTLAR', pad+4, y+5);
-    doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.setTextColor(30,30,30);
-    const lines = doc.splitTextToSize(b.notlar, W-pad*2-8);
-    doc.text(lines, pad+4, y+11);
-    y += Math.max(18, lines.length*5+12);
-  }
-
-  // Footer
-  doc.setFillColor(245,247,250);
-  doc.rect(0,280,W,17,'F');
-  doc.setTextColor(150,150,150); doc.setFont('helvetica','italic'); doc.setFontSize(8);
-  doc.text('Bu rapor Araç Bakım Takip Sistemi tarafından oluşturulmuştur.', W/2, 290, {align:'center'});
-  doc.text(`Oluşturma tarihi: ${new Date().toLocaleString('tr-TR')}`, W/2, 295, {align:'center'});
-
-  return doc;
-}
-
-async function printBakim(id) {
-  try {
-    const doc = await generateBakimPDF(id);
-    const blob = doc.output('blob');
-    const url = URL.createObjectURL(blob);
-    const w = window.open(url,'_blank');
-    if (w) w.onload = () => w.print();
-    else { // Mobilde yeni sekme açamazsa indir
-      const a = document.createElement('a');
-      a.href = url; a.download = `bakim_raporu_${id}.pdf`; a.click();
-    }
-  } catch(e) { showToast('PDF oluşturulamadı: '+e.message,'error'); }
-}
-
-async function whatsappPDF(id) {
-  try {
-    showToast('PDF hazırlanıyor...','success');
-    const b = await dbGet('bakimlar',id);
-    const m = await dbGet('musteriler',b.musteri_id);
-    const doc = await generateBakimPDF(id);
-    // PDF'i dosya olarak indir
-    const blob = doc.output('blob');
-    const url = URL.createObjectURL(blob);
-    // Önce PDF'i indir
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `bakim_raporu_${b.plaka||'arac'}_${formatDateFile(b.tarih)}.pdf`;
-    a.click();
-    // Telefon numarasını hazırla
-    const tel = (m?.telefon||'').replace(/\D/g,'');
-    const uluslararasi = tel.startsWith('0') ? '90'+tel.slice(1) : tel.startsWith('90') ? tel : '90'+tel;
-    // Mesaj metni
-    const mesaj = encodeURIComponent(
-      `Merhaba ${m?.ad||''} ${m?.soyad||''},\n\n` +
-      `${formatDate(b.tarih)} tarihli aracınıza ait bakım raporu ekte yer almaktadır.\n` +
-      `Araç: ${b.plaka} - ${b.arac_marka} ${b.arac_model}\n` +
-      `Toplam: ${formatMoney(b.toplam_ucret)}\n\n` +
-      `İyi sürüşler dileriz. 🔧`
-    );
-    // WhatsApp'ı aç (PDF ayrıca indiriliyor, kullanıcı oradan paylaşır)
-    setTimeout(()=>{
-      window.open(`https://wa.me/${uluslararasi}?text=${mesaj}`,'_blank');
-      showToast('PDF indirildi. WhatsApp\'tan "Dosya Ekle" ile gönderin 📎','success');
-    }, 800);
-  } catch(e) { showToast('Hata: '+e.message,'error'); }
-}
-
-function formatDateFile(iso) {
-  if (!iso) return 'tarih';
-  const d = new Date(iso);
-  return `${d.getFullYear()}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}`;
-}
-
-// ════════════════════════════════════════════
-//  RAPORLAR
+//  RAPOR
 // ════════════════════════════════════════════
 async function showReport(type) {
-  const bakimlar = await dbGet('bakimlar');
-  const musteriler = await dbGet('musteriler');
-  const mustMap = {}; musteriler.forEach(m=>mustMap[m.id]=m);
-  const now = new Date();
-  if (type==='csv') { exportCSV(bakimlar,mustMap); return; }
-  let html = '<div class="modal-handle"></div>';
-
-  if (type==='aylik') {
-    const ay = bakimlar.filter(b=>{const t=new Date(b.tarih);return t.getMonth()===now.getMonth()&&t.getFullYear()===now.getFullYear();});
-    const toplam = ay.reduce((s,b)=>s+b.toplam_ucret,0);
-    html += `<div class="modal-title">📊 ${now.toLocaleDateString('tr-TR',{month:'long',year:'numeric'})} Raporu</div>
+  const [bakimlar,musteriler]=await Promise.all([dbGet('bakimlar'),dbGet('musteriler')]);
+  const mm=Object.fromEntries(musteriler.map(m=>[m.id,m]));
+  const now=new Date();
+  if(type==='csv'){exportCSV(bakimlar,mm);return;}
+  let html='<div class="modal-handle"></div>';
+  if(type==='aylik') {
+    const ay=bakimlar.filter(b=>{const t=new Date(b.tarih);return t.getMonth()===now.getMonth()&&t.getFullYear()===now.getFullYear();});
+    const toplam=ay.reduce((s,b)=>s+b.toplam_ucret,0);
+    html+=`<div class="modal-title">📊 ${now.toLocaleDateString('tr-TR',{month:'long',year:'numeric'})} Raporu</div>
     <div class="modal-body">
       <div class="stat-grid" style="padding:0 0 16px">
         <div class="stat-card"><div class="stat-icon">🔧</div><div class="stat-value">${ay.length}</div><div class="stat-label">Bakım</div></div>
         <div class="stat-card"><div class="stat-icon">💰</div><div class="stat-value">${formatMoney(toplam)}</div><div class="stat-label">Gelir</div></div>
       </div>
-      <div style="font-size:12px;color:var(--text3);margin-bottom:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px">Bakım Listesi</div>
-      ${ay.sort((a,b)=>new Date(b.tarih)-new Date(a.tarih)).map(b=>{
-        const m=mustMap[b.musteri_id];
-        return `<div style="border-bottom:1px solid var(--border);padding:10px 0;display:flex;justify-content:space-between">
-          <div><div style="font-weight:500">${b.bakim_turu}</div><div style="font-size:12px;color:var(--text2)">${m?m.ad+' '+m.soyad:''} · ${formatDate(b.tarih)}</div></div>
-          <div style="color:var(--accent);font-weight:700">${formatMoney(b.toplam_ucret)}</div>
-        </div>`;
-      }).join('')||'<div class="empty-state"><div>Bu ay bakım yok</div></div>'}
+      ${ay.sort((a,b)=>new Date(b.tarih)-new Date(a.tarih)).map(b=>{const m=mm[b.musteri_id];return`<div style="border-bottom:1px solid var(--border);padding:10px 0;display:flex;justify-content:space-between"><div><div style="font-weight:500">${b.bakim_turu}</div><div style="font-size:12px;color:var(--text2)">${m?m.ad+' '+m.soyad:''} · ${formatDate(b.tarih)}</div></div><div style="color:var(--accent);font-weight:700">${formatMoney(b.toplam_ucret)}</div></div>`;}).join('')||'<div class="empty-state" style="padding:20px">Bu ay bakım yok</div>'}
     </div>`;
-  } else if (type==='genel') {
+  } else if(type==='genel') {
     const toplam=bakimlar.reduce((s,b)=>s+b.toplam_ucret,0);
     const ort=bakimlar.length?toplam/bakimlar.length:0;
-    html += `<div class="modal-title">📈 Genel Özet</div>
-    <div class="modal-body">
+    html+=`<div class="modal-title">📈 Genel Özet</div><div class="modal-body">
       <div class="stat-grid" style="padding:0 0 16px">
         <div class="stat-card"><div class="stat-icon">👥</div><div class="stat-value">${musteriler.length}</div><div class="stat-label">Müşteri</div></div>
         <div class="stat-card"><div class="stat-icon">🔧</div><div class="stat-value">${bakimlar.length}</div><div class="stat-label">Bakım</div></div>
@@ -1403,51 +1233,29 @@ async function showReport(type) {
         <div class="stat-card"><div class="stat-icon">📊</div><div class="stat-value">${formatMoney(ort)}</div><div class="stat-label">Ortalama</div></div>
       </div>
       <div style="font-size:12px;color:var(--text3);margin-bottom:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px">Bakım Türü Dağılımı</div>
-      ${bakimTuruDagilim(bakimlar)}
-    </div>`;
-  } else if (type==='musteribakim') {
+      ${turDagilim(bakimlar)}</div>`;
+  } else if(type==='musteribakim') {
     const sayac={};
     bakimlar.forEach(b=>{sayac[b.musteri_id]=(sayac[b.musteri_id]||0)+1;});
-    const siralama=Object.entries(sayac).sort((a,b)=>b[1]-a[1]).slice(0,10);
-    html += `<div class="modal-title">🏆 En Çok Bakım</div>
-    <div class="modal-body">
-      ${siralama.map(([mid,sayi],i)=>{
-        const m=mustMap[mid];
-        const gelir=bakimlar.filter(b=>b.musteri_id===mid).reduce((s,b)=>s+b.toplam_ucret,0);
-        return `<div style="display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--border)">
-          <div style="font-family:'Syne',sans-serif;font-size:20px;font-weight:800;color:var(--accent);width:28px">${i+1}</div>
-          <div style="flex:1"><div style="font-weight:600">${m?m.ad+' '+m.soyad:'Bilinmiyor'}</div><div style="font-size:12px;color:var(--text2)">${m?.plaka||''}</div></div>
-          <div style="text-align:right"><div style="font-weight:700">${sayi} bakım</div><div style="font-size:12px;color:var(--accent)">${formatMoney(gelir)}</div></div>
-        </div>`;
-      }).join('')}
+    const s=Object.entries(sayac).sort((a,b)=>b[1]-a[1]).slice(0,10);
+    html+=`<div class="modal-title">🏆 En Çok Bakım</div><div class="modal-body">
+      ${s.map(([mid,n],i)=>{const m=mm[mid];const g=bakimlar.filter(b=>b.musteri_id===mid).reduce((s,b)=>s+b.toplam_ucret,0);return`<div style="display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--border)"><div style="font-family:'Syne',sans-serif;font-size:20px;font-weight:800;color:var(--accent);width:28px">${i+1}</div><div style="flex:1"><div style="font-weight:600">${m?m.ad+' '+m.soyad:'?'}</div><div style="font-size:12px;color:var(--text2)">${m?.plaka||''}</div></div><div style="text-align:right"><div style="font-weight:700">${n} bakım</div><div style="font-size:12px;color:var(--accent)">${formatMoney(g)}</div></div></div>`;}).join('')}
     </div>`;
   }
-  html += `<div class="modal-footer"><button class="btn btn-secondary" style="width:100%" onclick="closeModal('overlay-report')">Kapat</button></div>`;
-  document.getElementById('report-modal-content').innerHTML = html;
+  html+=`<div class="modal-footer"><button class="btn btn-secondary" style="width:100%" onclick="closeModal('overlay-report')">Kapat</button></div>`;
+  document.getElementById('report-modal-content').innerHTML=html;
   openModal('overlay-report');
 }
 
-function bakimTuruDagilim(bakimlar) {
-  const sayac={};
-  bakimlar.forEach(b=>{sayac[b.bakim_turu]=(sayac[b.bakim_turu]||0)+1;});
-  const total=bakimlar.length||1;
-  return Object.entries(sayac).sort((a,b)=>b[1]-a[1]).map(([tur,sayi])=>`
-    <div style="margin-bottom:10px">
-      <div style="display:flex;justify-content:space-between;margin-bottom:4px">
-        <div style="font-size:13px">${tur}</div><div style="font-size:13px;font-weight:600">${sayi}</div>
-      </div>
-      <div style="background:var(--surface2);border-radius:4px;height:6px">
-        <div style="background:var(--accent);height:100%;border-radius:4px;width:${(sayi/total)*100}%"></div>
-      </div>
-    </div>`).join('');
+function turDagilim(bakimlar) {
+  const s={};bakimlar.forEach(b=>{s[b.bakim_turu]=(s[b.bakim_turu]||0)+1;});
+  const t=bakimlar.length||1;
+  return Object.entries(s).sort((a,b)=>b[1]-a[1]).map(([tur,n])=>`<div style="margin-bottom:10px"><div style="display:flex;justify-content:space-between;margin-bottom:4px"><div style="font-size:13px">${tur}</div><div style="font-size:13px;font-weight:600">${n}</div></div><div style="background:var(--surface2);border-radius:4px;height:6px"><div style="background:var(--accent);height:100%;border-radius:4px;width:${(n/t)*100}%"></div></div></div>`).join('');
 }
 
-function exportCSV(bakimlar,mustMap) {
-  const rows=[['ID','Tarih','Müşteri','Plaka','Araç','Bakım Türü','KM','İşlem Toplamı','İşçilik','Toplam','Notlar']];
-  bakimlar.forEach(b=>{
-    const m=mustMap[b.musteri_id];
-    rows.push([b.id,formatDate(b.tarih),m?m.ad+' '+m.soyad:'',b.plaka||'',`${b.arac_marka} ${b.arac_model}`,b.bakim_turu,b.km||0,b.parca_toplam||0,b.iscilik_ucreti||0,b.toplam_ucret||0,b.notlar||'']);
-  });
+function exportCSV(bakimlar,mm) {
+  const rows=[['ID','Tarih','Müşteri','Plaka','Araç','Bakım Türü','KM','Parça Toplam','İşçilik','Toplam','Notlar']];
+  bakimlar.forEach(b=>{const m=mm[b.musteri_id];rows.push([b.id,formatDate(b.tarih),m?m.ad+' '+m.soyad:'',b.plaka||'',`${b.arac_marka} ${b.arac_model}`,b.bakim_turu,b.km||0,b.parca_toplam||0,b.iscilik_ucreti||0,b.toplam_ucret||0,b.notlar||'']);});
   const csv=rows.map(r=>r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
   download(`bakim_raporu_${new Date().toISOString().slice(0,10)}.csv`,'text/csv;charset=utf-8','\uFEFF'+csv);
   showToast('CSV indirildi ✓','success');
@@ -1463,45 +1271,59 @@ function exportData() {
 // ════════════════════════════════════════════
 //  UTILS
 // ════════════════════════════════════════════
-function toUpperInput(el) {
-  const pos = el.selectionStart;
-  el.value = el.value.toUpperCase();
-  el.setSelectionRange(pos,pos);
-}
-
-function formatMoney(v) {
-  if (!v&&v!==0) return '0 ₺';
-  if (v>=1000) return (v/1000).toFixed(1).replace('.0','')+'K ₺';
-  return Math.round(v)+' ₺';
-}
-function formatDate(iso) {
-  if (!iso) return '-';
-  return new Date(iso).toLocaleDateString('tr-TR',{day:'2-digit',month:'short',year:'numeric'});
-}
-function download(filename,type,content) {
-  const a=document.createElement('a');
-  a.href=URL.createObjectURL(new Blob([content],{type}));
-  a.download=filename; a.click();
-}
-function showToast(msg,type='success') {
-  const t=document.getElementById('toast');
-  t.textContent=(type==='success'?'✅ ':'❌ ')+msg;
-  t.className='toast '+type+' show';
-  setTimeout(()=>t.className='toast',3500);
-}
+function formatMoney(v){if(!v&&v!==0)return'0 ₺';if(v>=1000)return(v/1000).toFixed(1).replace('.0','')+'K ₺';return v.toFixed(0)+' ₺';}
+function formatDate(iso){if(!iso)return'-';return new Date(iso).toLocaleDateString('tr-TR',{day:'2-digit',month:'short',year:'numeric'});}
+function download(fn,type,content){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([content],{type}));a.download=fn;a.click();}
+function showToast(msg,type='success'){const t=document.getElementById('toast');t.textContent=(type==='success'?'✅ ':'❌ ')+msg;t.className='toast '+type+' show';setTimeout(()=>t.className='toast',3000);}
 function openModal(id){document.getElementById(id).classList.add('open');}
 function closeModal(id){document.getElementById(id).classList.remove('open');}
-function closeModalOut(e,id){if(e.target.id===id) closeModal(id);}
+function closeModalOut(e,id){if(e.target.id===id)closeModal(id);}
 function showSearch(){switchPage('musteri');setTimeout(()=>document.getElementById('musteri-search').focus(),300);}
 
 // ════════════════════════════════════════════
-//  SERVICE WORKER + INIT
+//  HATA YAKALAYICI (iOS debug)
 // ════════════════════════════════════════════
-if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(()=>{});
+var _errors = [];
+window.onerror = function(msg, src, line, col, err) {
+  _errors.push('[JS HATA] ' + msg + ' | satır:' + line);
+  showDebugOverlay();
+};
+window.onunhandledrejection = function(e) {
+  _errors.push('[PROMISE HATA] ' + (e.reason?.message || e.reason || 'bilinmiyor'));
+  showDebugOverlay();
+};
+function showDebugOverlay() {
+  var d = document.getElementById('_debug_overlay');
+  if (!d) {
+    d = document.createElement('div');
+    d.id = '_debug_overlay';
+    d.style.cssText = 'position:fixed;bottom:80px;left:10px;right:10px;background:#1a0000;border:2px solid #ef4444;border-radius:10px;padding:12px;z-index:9999;font-family:monospace;font-size:11px;color:#ff8888;max-height:200px;overflow-y:auto';
+    document.body.appendChild(d);
+  }
+  d.innerHTML = '<b style="color:#ef4444">⚠️ HATA LOG:</b><br>' + _errors.join('<br>') + '<br><button onclick="this.parentElement.remove()" style="margin-top:8px;background:#ef4444;color:#fff;border:none;padding:4px 10px;border-radius:4px">Kapat</button>';
+}
+
+// switchPage'i hata yakalayarak sar
+var _origSwitchPage = switchPage;
+switchPage = function(page) {
+  try {
+    _origSwitchPage(page);
+  } catch(e) {
+    _errors.push('[switchPage HATA] ' + e.message);
+    showDebugOverlay();
+  }
+};
+
+// ════════════════════════════════════════════
+//  INIT
+// ════════════════════════════════════════════
+if('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(()=>{});
 
 initDB().then(()=>{
   renderDashboard();
 }).catch(e=>{
+  _errors.push('[initDB HATA] ' + e.message);
+  showDebugOverlay();
   document.body.innerHTML=`<div style="padding:40px;text-align:center;color:#ef4444"><div style="font-size:48px">⚠️</div><h2>Veritabanı hatası</h2><p>${e.message}</p></div>`;
 });
 </script>
