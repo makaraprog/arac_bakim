@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
+<style>
+  body{font-family:sans-serif;background:#0a0f1e;color:#fff;margin:0;padding:20px}
+  .log{background:#111;border:1px solid #333;border-radius:8px;padding:12px;margin:10px 0;font-size:12px;font-family:monospace;min-height:100px;white-space:pre-wrap}
+  button{background:#f97316;color:#fff;border:none;padding:12px 24px;border-radius:8px;font-size:16px;margin:8px;cursor:pointer;display:block;width:100%}
+  .ok{color:#22c55e}.err{color:#ef4444}.info{color:#94a3b8}
+</style>
+</head>
+<body>
+<h2>iOS Debug Test</h2>
+<div class="log" id="log">Bekliyor...\n</div>
+
+<button onclick="testClick(this)">1. Buton onclick testi</button>
+<button id="btn2">2. addEventListener testi</button>
+<button onclick="testDisplay()">3. display:none/block testi</button>
+<button onclick="testCSS()">4. CSS class testi</button>
+
+<div id="test-div" style="display:none;background:#1a2235;padding:20px;border-radius:8px;margin:10px 0">
+  ✅ Bu div görünüyor! display:block çalışıyor.
+</div>
+<div id="test-div2" class="hidden" style="background:#1a2235;padding:20px;border-radius:8px;margin:10px 0">
+  ✅ Bu div görünüyor! CSS class çalışıyor.
+</div>
+
+<style>.hidden{display:none!important}.visible{display:block!important}</style>
+
+<script>
+var logEl = document.getElementById('log');
+function log(msg, type) {
+  var t = new Date().toLocaleTimeString('tr-TR');
+  logEl.innerHTML += '<span class="'+(type||'info')+'">['+t+'] '+msg+'</span>\n';
+  logEl.scrollTop = logEl.scrollHeight;
+}
+
+log('Sayfa yüklendi. iOS: ' + /iPad|iPhone|iPod/.test(navigator.userAgent), 'ok');
+log('Safari: ' + /Safari/.test(navigator.userAgent) && !/Chrome/.test(navigator.userAgent), 'ok');
+log('userAgent: ' + navigator.userAgent.substring(0,80));
+
+function testClick(btn) {
+  log('onclick ÇALIŞTI ✅', 'ok');
+}
+
+document.getElementById('btn2').addEventListener('click', function() {
+  log('addEventListener ÇALIŞTI ✅', 'ok');
+});
+
+function testDisplay() {
+  var d = document.getElementById('test-div');
+  var current = d.style.display;
+  d.style.display = current === 'none' ? 'block' : 'none';
+  log('display toggle: ' + current + ' → ' + d.style.display, 'ok');
+}
+
+function testCSS() {
+  var d = document.getElementById('test-div2');
+  if (d.classList.contains('hidden')) {
+    d.classList.remove('hidden');
+    d.classList.add('visible');
+    log('CSS: hidden kaldırıldı, visible eklendi ✅', 'ok');
+  } else {
+    d.classList.remove('visible');
+    d.classList.add('hidden');
+    log('CSS: tekrar hidden yapıldı', 'info');
+  }
+}
+
+window.onerror = function(msg, src, line, col, err) {
+  log('HATA: ' + msg + ' (satır:' + line + ')', 'err');
+};
+</script>
+</body>
+</html>
