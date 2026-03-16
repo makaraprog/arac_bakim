@@ -627,32 +627,42 @@ function switchPage(page) {
 //  DASHBOARD
 // ════════════════════════════════════════════
 async function renderDashboard() {
-  const now=new Date();
-  document.getElementById('dash-date').textContent=now.toLocaleDateString('tr-TR',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
-  const [musteriler,bakimlar]=await Promise.all([dbGet('musteriler'),dbGet('bakimlar')]);
-  const toplam=bakimlar.reduce((s,b)=>s+(b.toplam_ucret||0),0);
-  const buAy=bakimlar.filter(b=>{const t=new Date(b.tarih);return t.getMonth()===now.getMonth()&&t.getFullYear()===now.getFullYear();}).reduce((s,b)=>s+(b.toplam_ucret||0),0);
-  document.getElementById('s-musteri').textContent=musteriler.length;
-  document.getElementById('s-bakim').textContent=bakimlar.length;
-  document.getElementById('s-gelir').textContent=formatMoney(toplam);
-  document.getElementById('s-aylik').textContent=formatMoney(buAy);
-  const aylar=[];
-  for(let i=5;i>=0;i--){const d=new Date(now.getFullYear(),now.getMonth()-i,1);const g=bakimlar.filter(b=>{const t=new Date(b.tarih);return t.getMonth()===d.getMonth()&&t.getFullYear()===d.getFullYear();}).reduce((s,b)=>s+(b.toplam_ucret||0),0);aylar.push({label:d.toLocaleDateString('tr-TR',{month:'short'}),gelir:g});}
-  const mx=Math.max(...aylar.map(a=>a.gelir),1);
-  document.getElementById('bar-chart').innerHTML=aylar.map(a=>`<div class="bar-wrap"><div class="bar" style="height:${Math.max(4,(a.gelir/mx)*90)}px" title="${formatMoney(a.gelir)}"></div><div class="bar-label">${a.label}</div></div>`).join('');
-  const sorted=[...bakimlar].sort((a,b)=>new Date(b.tarih)-new Date(a.tarih)).slice(0,5);
-  const mm=Object.fromEntries(musteriler.map(m=>[m.id,m]));
-  document.getElementById('recent-list').innerHTML=sorted.length===0?`<div class="empty-state"><div class="emoji">🔧</div><h3>Henüz bakım yok</h3></div>`:sorted.map(b=>cardBakim(b,mm[b.musteri_id])).join('');
+  try {
+    const now=new Date();
+    document.getElementById('dash-date').textContent=now.toLocaleDateString('tr-TR',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+    const [musteriler,bakimlar]=await Promise.all([dbGet('musteriler'),dbGet('bakimlar')]);
+    const toplam=bakimlar.reduce((s,b)=>s+(b.toplam_ucret||0),0);
+    const buAy=bakimlar.filter(b=>{const t=new Date(b.tarih);return t.getMonth()===now.getMonth()&&t.getFullYear()===now.getFullYear();}).reduce((s,b)=>s+(b.toplam_ucret||0),0);
+    document.getElementById('s-musteri').textContent=musteriler.length;
+    document.getElementById('s-bakim').textContent=bakimlar.length;
+    document.getElementById('s-gelir').textContent=formatMoney(toplam);
+    document.getElementById('s-aylik').textContent=formatMoney(buAy);
+    const aylar=[];
+    for(let i=5;i>=0;i--){const d=new Date(now.getFullYear(),now.getMonth()-i,1);const g=bakimlar.filter(b=>{const t=new Date(b.tarih);return t.getMonth()===d.getMonth()&&t.getFullYear()===d.getFullYear();}).reduce((s,b)=>s+(b.toplam_ucret||0),0);aylar.push({label:d.toLocaleDateString('tr-TR',{month:'short'}),gelir:g});}
+    const mx=Math.max(...aylar.map(a=>a.gelir),1);
+    document.getElementById('bar-chart').innerHTML=aylar.map(a=>`<div class="bar-wrap"><div class="bar" style="height:${Math.max(4,(a.gelir/mx)*90)}px" title="${formatMoney(a.gelir)}"></div><div class="bar-label">${a.label}</div></div>`).join('');
+    const sorted=[...bakimlar].sort((a,b)=>new Date(b.tarih)-new Date(a.tarih)).slice(0,5);
+    const mm=Object.fromEntries(musteriler.map(m=>[m.id,m]));
+    document.getElementById('recent-list').innerHTML=sorted.length===0?`<div class="empty-state"><div class="emoji">🔧</div><h3>Henüz bakım yok</h3></div>`:sorted.map(b=>cardBakim(b,mm[b.musteri_id])).join('');
+  } catch(e) {
+    _errors.push('[renderDashboard] '+e.message); showDebugOverlay();
+  }
 }
 
 // ════════════════════════════════════════════
 //  MÜŞTERİ
 // ════════════════════════════════════════════
 async function renderMusteriler(filter='') {
-  const all=await dbGet('musteriler');
-  const list=filter?all.filter(m=>{const q=filter.toLocaleUpperCase('tr-TR');return m.ad?.includes(q)||m.soyad?.includes(q)||m.telefon?.includes(filter)||(m.araclar||[]).some(a=>a.plaka?.includes(q));}):all;
-  document.getElementById('musteri-count').textContent=`${list.length} müşteri`;
-  document.getElementById('musteri-list').innerHTML=list.length===0?`<div class="empty-state"><div class="emoji">👤</div><h3>${filter?'Sonuç bulunamadı':'Henüz müşteri yok'}</h3></div>`:list.map(cardMusteri).join('');
+  try {
+    const all=await dbGet('musteriler');
+    const list=filter?all.filter(m=>{const q=filter.toLocaleUpperCase('tr-TR');return m.ad?.includes(q)||m.soyad?.includes(q)||m.telefon?.includes(filter)||(m.araclar||[]).some(a=>a.plaka?.includes(q));}):all;
+    document.getElementById('musteri-count').textContent=`${list.length} müşteri`;
+    document.getElementById('musteri-list').innerHTML=list.length===0?`<div class="empty-state"><div class="emoji">👤</div><h3>${filter?'Sonuç bulunamadı':'Henüz müşteri yok'}</h3></div>`:list.map(cardMusteri).join('');
+  } catch(e) {
+    const el=document.getElementById('musteri-list');
+    if(el) el.innerHTML=`<div style="padding:20px;color:#ef4444;font-family:monospace;font-size:12px;word-break:break-all">HATA: ${e.message}</div>`;
+    _errors.push('[renderMusteriler] '+e.message); showDebugOverlay();
+  }
 }
 
 function cardMusteri(m) {
@@ -822,12 +832,18 @@ let tempPhotos=[];
 let seciliKalemler={};
 
 async function renderBakimlar() {
-  const [bakimlar,musteriler]=await Promise.all([dbGet('bakimlar'),dbGet('musteriler')]);
-  const mm=Object.fromEntries(musteriler.map(m=>[m.id,m]));
-  let list=[...bakimlar].sort((a,b)=>new Date(b.tarih)-new Date(a.tarih));
-  if(bakimFilter!=='tumu') list=list.filter(b=>(b.bakim_turu||'').toLocaleLowerCase('tr-TR').includes(bakimFilter));
-  document.getElementById('bakim-count').textContent=`${list.length} kayıt`;
-  document.getElementById('bakim-list').innerHTML=list.length===0?`<div class="empty-state"><div class="emoji">🔧</div><h3>Kayıt bulunamadı</h3></div>`:list.map(b=>cardBakim(b,mm[b.musteri_id])).join('');
+  try {
+    const [bakimlar,musteriler]=await Promise.all([dbGet('bakimlar'),dbGet('musteriler')]);
+    const mm=Object.fromEntries(musteriler.map(m=>[m.id,m]));
+    let list=[...bakimlar].sort((a,b)=>new Date(b.tarih)-new Date(a.tarih));
+    if(bakimFilter!=='tumu') list=list.filter(b=>(b.bakim_turu||'').toLocaleLowerCase('tr-TR').includes(bakimFilter));
+    document.getElementById('bakim-count').textContent=`${list.length} kayıt`;
+    document.getElementById('bakim-list').innerHTML=list.length===0?`<div class="empty-state"><div class="emoji">🔧</div><h3>Kayıt bulunamadı</h3></div>`:list.map(b=>cardBakim(b,mm[b.musteri_id])).join('');
+  } catch(e) {
+    const el=document.getElementById('bakim-list');
+    if(el) el.innerHTML=`<div style="padding:20px;color:#ef4444;font-family:monospace;font-size:12px;word-break:break-all">HATA: ${e.message}</div>`;
+    _errors.push('[renderBakimlar] '+e.message); showDebugOverlay();
+  }
 }
 
 function filterBakim(f,el) {
