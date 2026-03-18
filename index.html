@@ -1292,74 +1292,21 @@ function closeModalOut(e,id){if(e.target.id===id)closeModal(id);}
 function showSearch(){switchPage('musteri');setTimeout(()=>document.getElementById('musteri-search').focus(),300);}
 
 // ════════════════════════════════════════════
-//  DEBUG & HATA YAKALAYICI
+//  HATA YAKALAYICI
 // ════════════════════════════════════════════
 var _errors = [];
-var _logs = [];
-
-function _log(msg) {
-  var t = new Date().toLocaleTimeString('tr-TR');
-  _logs.push('[' + t + '] ' + msg);
-  console.log(msg);
-}
-
-function showDebugPanel() {
-  var panel = document.getElementById('debug-panel');
-  var logEl = document.getElementById('debug-log');
-  if (!panel || !logEl) return;
-  
-  var info = [
-    '--- SİSTEM ---',
-    'IndexedDB: ' + (typeof indexedDB !== 'undefined' ? 'VAR' : 'YOK'),
-    'DB nesnesi: ' + (typeof db !== 'undefined' && db ? 'HAZIR' : 'HAZIR DEĞİL'),
-    'currentPage: ' + (typeof currentPage !== 'undefined' ? currentPage : 'tanımsız'),
-    '',
-    '--- HATALAR ---',
-    _errors.length === 0 ? 'Hata yok' : _errors.join('
-'),
-    '',
-    '--- LOG ---',
-    _logs.length === 0 ? 'Log yok' : _logs.join('
-')
-  ].join('
-');
-  
-  logEl.textContent = info;
-  panel.style.display = 'block';
-}
-
-function showDebugOverlay() {
-  // Artık sadece log'a ekle, overlay çıkarma
-  var logEl = document.getElementById('debug-log');
-  if (logEl) {
-    logEl.textContent = _errors.join('
-');
-    var panel = document.getElementById('debug-panel');
-    if (panel) panel.style.display = 'block';
-  }
-}
-
-window.onerror = function(msg, src, line, col, err) {
-  _errors.push('[JS HATA] ' + msg + ' | satır:' + line);
-  _log('JS HATA: ' + msg);
+function _log(msg) { console.log(msg); }
+function showDebugOverlay() {}
+function showDebugPanel() {}
+window.onerror = function(msg, src, line) {
+  _errors.push('[HATA] ' + msg + ' satir:' + line);
+  console.error(msg);
 };
 window.onunhandledrejection = function(e) {
   var msg = e.reason && e.reason.message ? e.reason.message : String(e.reason);
-  _errors.push('[PROMISE HATA] ' + msg);
-  _log('PROMISE HATA: ' + msg);
+  _errors.push('[PROMISE] ' + msg);
+  console.error(msg);
 };
-
-// switchPage'i hata yakalayarak sar
-var _origSwitchPage = switchPage;
-switchPage = function(page) {
-  try {
-    _origSwitchPage(page);
-  } catch(e) {
-    _errors.push('[switchPage HATA] ' + e.message);
-    showDebugOverlay();
-  }
-};
-
 // ════════════════════════════════════════════
 //  INIT
 // ════════════════════════════════════════════
